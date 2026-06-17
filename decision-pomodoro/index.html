@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>决策番茄钟 | Decision Pomodoro</title>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <h1 style="margin-bottom: 0;">🍅 决策番茄钟</h1>
+            <div class="header-icons">
+                <button class="icon-btn" id="btnSound" title="音效开关">🔊</button>
+                <div class="volume-wrap">
+                    <span class="volume-icon">🔈</span>
+                    <input type="range" id="volumeSlider" min="0" max="100" value="50" title="音量调节">
+                </div>
+                <button class="icon-btn" id="btnAIConfig" title="AI 助手配置">🤖</button>
+                <button class="icon-btn" id="btnSettings" title="时间设置">⚙️</button>
+            </div>
+        </div>
+        <p class="subtitle" id="subtitle">5分钟拆分 → 25分钟执行 → 5分钟复盘 → 强制产出</p>
+
+        <div class="phase-indicator" id="phaseIndicator"></div>
+
+        <div id="statusMessage" class="status-message info">
+            开始新的一天！先输入今天要解决的问题。
+        </div>
+
+        <div class="timer-section">
+            <div class="phase-name" id="phaseName">问题拆分阶段</div>
+            <div class="timer-display" id="timerDisplay">05:00</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <div class="output-section">
+            <div class="output-label">
+                <span id="outputLabelIcon">📝</span>
+                <span id="outputLabelText">本轮产出（必须填写）</span>
+            </div>
+            <div class="output-type-group" id="outputTypeGroup">
+                <button class="output-type-btn" data-value="conclusion" title="一句话核心结论">🎯 主结论</button>
+                <button class="output-type-btn" data-value="concept" title="一个新概念的定义和例子">💡 概念卡</button>
+                <button class="output-type-btn" data-value="evidence" title="支持/反对的关键证据">📊 证据表</button>
+                <button class="output-type-btn" data-value="action" title="5分钟内可启动的下一步">⚡ 最小行动</button>
+            </div>
+            <textarea
+                class="output-input"
+                id="outputInput"
+                placeholder="例如：今天要完成PHE降解实验的样品前处理，具体动作是称取3组沉积物样品各5g"
+            ></textarea>
+            <div class="output-hint" id="outputHint">
+                <span class="output-required">*</span>
+                <span id="hintText">拆分阶段：把大问题变成"今天能完成的、可判断标准"的小任务</span>
+            </div>
+
+            <div id="aiAssistArea" class="hidden" style="margin-top: 10px;">
+                <button class="btn btn-secondary" id="btnAISuggest" style="width: 100%;">
+                    🤖 AI 建议
+                </button>
+                <div id="aiLoading" class="hidden" style="text-align: center; padding: 8px; font-size: 13px; color: #667eea;">
+                    ⏳ AI 思考中...
+                </div>
+                <div id="aiSuggestion" class="hidden">
+                    <div id="aiSuggestionText" class="ai-suggestion-box"></div>
+                    <div class="ai-actions">
+                        <button class="btn btn-primary" id="btnApplyAI" data-action="apply-ai-suggestion">采用建议</button>
+                        <button class="btn btn-secondary" id="btnDismissAI" data-action="dismiss-ai-suggestion">仅参考</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="idea-capture">
+            <div class="idea-capture-label">
+                🛡️ 新想法拦截器
+                <span style="font-weight: normal;">（ Enter 保存，本轮结束后再看）</span>
+            </div>
+            <input
+                type="text"
+                class="idea-input"
+                id="ideaInput"
+                placeholder="突然想到的事先写这里，不要跳转..."
+            >
+            <div class="idea-list" id="ideaList"></div>
+        </div>
+
+        <div class="action-section">
+            <button class="btn btn-primary" id="btnStart">▶ 开始</button>
+            <button class="btn btn-warning hidden" id="btnPause">⏸ 暂停</button>
+            <button class="btn btn-success" id="btnComplete">✓ 完成本阶段</button>
+            <button class="btn btn-danger" id="btnStuck">🚧 卡住了</button>
+            <button class="btn btn-secondary" id="btnEnd">🏁 结束本轮</button>
+        </div>
+
+        <div class="history-section">
+            <div class="history-title">📋 今日记录</div>
+            <div id="historyList"></div>
+            <div style="display: flex; gap: 10px; margin-top: 12px;">
+                <button class="btn btn-secondary" id="btnExport" style="flex: 1;">
+                    📅 导出到 Google Calendar (.ics)
+                </button>
+                <button class="btn btn-secondary" id="btnExportMarkdown" style="flex: 1;">
+                    📝 导出 Markdown
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="stuckModal">
+        <div class="modal">
+            <div class="modal-title">🚧 卡住了？</div>
+            <div class="modal-text">不要发散，30秒内选一个：</div>
+            <div class="modal-buttons">
+                <button class="modal-btn" data-action="stuck-smaller">
+                    <strong>① 把问题拆更小</strong><br>
+                    <small>当前任务太大，先做最小版本</small>
+                </button>
+                <button class="modal-btn" data-action="stuck-angle">
+                    <strong>② 换个角度问</strong><br>
+                    <small>用不同方式重新描述问题</small>
+                </button>
+                <button class="modal-btn" data-action="stuck-action">
+                    <strong>③ 先做最小行动</strong><br>
+                    <small>不管完美，先做5分钟能完成的事</small>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="focusModal">
+        <div class="modal">
+            <div class="modal-title">🎯 还在主线上吗？</div>
+            <div class="modal-text">10分钟过去了，确认你没有发散。</div>
+            <div class="modal-buttons">
+                <button class="modal-btn" data-action="focus-continue">
+                    <strong>✓ 是的，继续执行</strong>
+                </button>
+                <button class="modal-btn" data-action="focus-distraction">
+                    <strong>⚠️ 有点走神，记录下来继续</strong>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="stopLossModal">
+        <div class="modal">
+            <div class="modal-title">🛑 强制止损</div>
+            <div class="modal-text">
+                连续两轮未达标。根据你的规则，必须停止当前策略。<br><br>
+                请输出<strong>当前已知的最弱结论</strong>，标记不确定性，然后结束本轮。
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn" data-action="closestop-loss">
+                    <strong>我知道了，输出最弱结论</strong>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="timeUpModal">
+        <div class="modal">
+            <div class="modal-title" id="timeUpModalTitle">⏰ 时间到！</div>
+            <div class="modal-text" id="timeUpModalText"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn" data-action="dismiss-time-up" style="text-align: center;">
+                    <strong>知道了</strong>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="markdownModal">
+        <div class="modal" style="max-width: 560px;">
+            <div class="modal-title">📝 导出 Markdown</div>
+            <div class="modal-text" id="markdownCopyStatus">
+                今日记录已自动复制到剪贴板！你也可以手动复制下方内容：
+            </div>
+            <textarea class="markdown-export-content" id="markdownOutput" readonly></textarea>
+            <div class="modal-buttons" style="margin-top: 16px;">
+                <button class="modal-btn" data-action="closemarkdown-modal" style="text-align: center;">
+                    <strong>关闭</strong>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal" style="max-width: 480px; text-align: left;">
+            <div class="modal-title">📅 导出到日历</div>
+            <div class="modal-text">选择要导出的轮次：</div>
+            <div id="exportSessionList" style="max-height: 200px; overflow-y: auto; margin-bottom: 16px;"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn" id="btnExportGCal">
+                    <strong>📅 打开 Google Calendar</strong><br>
+                    <small>在浏览器中打开预填好的事件页面，点击保存即可</small>
+                </button>
+                <button class="modal-btn" id="btnExportICS">
+                    <strong>📥 下载 .ics 文件</strong><br>
+                    <small>下载标准日历文件，可导入任何日历应用</small>
+                </button>
+                <button class="modal-btn" data-action="closeexport-modal" style="text-align: center;">
+                    取消
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal" style="max-width: 480px; text-align: left;">
+            <div class="modal-title">⚙️ 时间设置</div>
+            <div class="settings-group">
+                <label style="font-size: 14px; font-weight: 600; color: #1e3a5f; margin-bottom: 8px;">已保存的配置</label>
+                <div id="profilesList" style="max-height: 180px; overflow-y: auto; margin-bottom: 12px;"></div>
+            </div>
+            <div style="border-top: 1px solid #c8d6e5; padding-top: 12px;">
+                <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                    <div style="flex:1;" class="settings-group">
+                        <label>🧩 拆分 (分钟)</label>
+                        <input type="number" id="inputSplit" min="1" max="30" class="settings-input">
+                    </div>
+                    <div style="flex:1;" class="settings-group">
+                        <label>🎯 执行 (分钟)</label>
+                        <input type="number" id="inputExec" min="5" max="90" class="settings-input">
+                    </div>
+                    <div style="flex:1;" class="settings-group">
+                        <label>📝 复盘 (分钟)</label>
+                        <input type="number" id="inputReview" min="1" max="30" class="settings-input">
+                    </div>
+                </div>
+            </div>
+            <div class="settings-group">
+                <label style="font-size: 13px; color: #5c7a9a; display: block; margin-bottom: 8px;">
+                    🔄 执行轮次
+                </label>
+                <div style="display: flex; gap: 8px;">
+                    <button class="output-type-btn" id="btnRounds1" data-action="rounds-1"
+                        style="flex:1; text-align:center; padding:10px 8px;">1 轮（拆分 + 执行 + 复盘）</button>
+                    <button class="output-type-btn" id="btnRounds2" data-action="rounds-2"
+                        style="flex:1; text-align:center; padding:10px 8px;">2 轮（拆分 + 执行×2 + 复盘×2）</button>
+                </div>
+            </div>
+            <div class="settings-preview" id="settingsPreview">
+                总时长: 65 分钟（5 + 25 + 5 + 25 + 5）
+            </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <button class="btn btn-secondary" id="btnSaveNewProfile" style="flex:1; padding:10px; font-size:13px;">💾 另存为新配置</button>
+                <button class="btn btn-secondary" id="btnUpdateProfile" style="flex:1; padding:10px; font-size:13px;">🔄 更新当前配置</button>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="btnApplySettings" style="text-align: center;">保存设置并关闭</button>
+                <button class="modal-btn" data-action="closesettings-modal" style="text-align: center;">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="aiConfigModal">
+        <div class="modal" style="max-width: 480px; text-align: left;">
+            <div class="modal-title">🤖 AI 助手配置</div>
+            <div class="modal-text" style="margin-bottom: 12px;">
+                配置 AI 可以在拆分阶段帮你分析问题，在复盘阶段帮你总结。<br>
+                使用 OpenAI 兼容 API 格式，支持 OpenAI、Claude (via proxy)、本地模型等。
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                    <input type="checkbox" id="aiEnabled"> 启用 AI 助手
+                </label>
+            </div>
+            <div id="aiConfigFields">
+                <div class="settings-group">
+                    <label>API Endpoint</label>
+                    <input type="text" id="aiEndpoint" class="settings-input" placeholder="https://api.openai.com/v1/chat/completions">
+                </div>
+                <div class="settings-group">
+                    <label>API Key</label>
+                    <input type="password" id="aiApiKey" class="settings-input" placeholder="sk-...">
+                </div>
+                <div class="settings-group">
+                    <label>模型名称</label>
+                    <input type="text" id="aiModel" class="settings-input" placeholder="gpt-4o-mini">
+                </div>
+                <button class="btn btn-secondary" id="btnTestAI" style="width: 100%; margin-bottom: 8px;">
+                    🔗 测试连接
+                </button>
+                <div id="aiTestResult" style="font-size: 13px; display: none; padding: 8px; border-radius: 6px; margin-bottom: 12px;"></div>
+                <div style="font-size: 12px; color: #94a8be; margin-bottom: 12px;">
+                    ⚠️ API Key 存储在浏览器本地，请勿在公共电脑上使用。
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" id="btnSaveAI" style="text-align: center;">保存</button>
+                <button class="modal-btn" data-action="closeai-modal" style="text-align: center;">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>

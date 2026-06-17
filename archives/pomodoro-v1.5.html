@@ -1,0 +1,2026 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>决策番茄钟 | Decision Pomodoro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 600px;
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e3a5f;
+            margin-bottom: 8px;
+            font-size: 24px;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #5c7a9a;
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        /* 阶段指示器 */
+        .phase-indicator {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 12px;
+        }
+
+        .phase-step {
+            flex: 1;
+            text-align: center;
+            padding: 8px 4px;
+            border-radius: 8px;
+            font-size: 12px;
+            color: #94a8be;
+            transition: all 0.3s;
+        }
+
+        .phase-step.active {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+
+        .phase-step.completed {
+            color: #28a745;
+            font-weight: 600;
+        }
+
+        /* 计时区 */
+        .timer-section {
+            text-align: center;
+            margin-bottom: 24px;
+        }
+
+        .phase-name {
+            font-size: 18px;
+            color: #667eea;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .timer-display {
+            font-size: 80px;
+            font-weight: 700;
+            color: #1e3a5f;
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -2px;
+        }
+
+        .timer-display.warning {
+            color: #ff6b6b;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            border-radius: 4px;
+            transition: width 1s linear;
+        }
+
+        /* 产出区 */
+        .output-section {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .output-label {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .output-type-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .output-type-btn {
+            padding: 6px 14px;
+            border: 2px solid #bcd4f0;
+            border-radius: 20px;
+            background: white;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #4a6fa5;
+        }
+
+        .output-type-btn:hover {
+            border-color: #4a8fe7;
+            color: #4a8fe7;
+            background: #eaf2fd;
+        }
+
+        .output-type-btn.active {
+            background: linear-gradient(135deg, #4a8fe7, #3a6fd8);
+            border-color: transparent;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(74, 143, 231, 0.35);
+        }
+
+        .settings-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 2px solid #c8d6e5;
+            border-radius: 8px;
+            font-size: 14px;
+            margin-bottom: 12px;
+            background: white;
+        }
+
+        .output-input {
+            width: 100%;
+            min-height: 80px;
+            padding: 12px;
+            border: 2px solid #c8d6e5;
+            border-radius: 8px;
+            font-size: 14px;
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        .output-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .output-hint {
+            font-size: 12px;
+            color: #5c7a9a;
+            margin-top: 8px;
+        }
+
+        .output-required {
+            color: #ff6b6b;
+            font-weight: 600;
+        }
+
+        /* 新想法拦截区 */
+        .idea-capture {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 20px;
+        }
+
+        .idea-capture-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #856404;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .idea-input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ffeaa7;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .idea-list {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #856404;
+        }
+
+        .idea-item {
+            padding: 4px 0;
+            border-bottom: 1px dashed #ffeaa7;
+        }
+
+        /* 操作区 */
+        .action-section {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .btn {
+            flex: 1;
+            min-width: 100px;
+            padding: 14px 20px;
+            border: none;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #5a6fd6;
+            transform: translateY(-1px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #218838;
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #1e3a5f;
+        }
+
+        .btn-warning:hover:not(:disabled) {
+            background: #e0a800;
+        }
+
+        .btn-danger {
+            background: #ff6b6b;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #ff5252;
+        }
+
+        .btn-secondary {
+            background: #5a7fa0;
+            color: white;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #4c6e8c;
+        }
+
+        /* 弹窗 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 28px;
+            max-width: 420px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 700;
+            margin-bottom: 16px;
+            color: #1e3a5f;
+        }
+
+        .modal-text {
+            font-size: 14px;
+            color: #5c7a9a;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .modal-btn {
+            padding: 12px 20px;
+            border: 2px solid #c8d6e5;
+            border-radius: 10px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .modal-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        /* 状态提示 */
+        .status-message {
+            text-align: center;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-message.info {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-message.success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-message.warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-message.danger {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Markdown 导出弹窗 */
+        .markdown-export-content {
+            width: 100%;
+            min-height: 300px;
+            padding: 12px;
+            border: 2px solid #c8d6e5;
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
+            resize: vertical;
+            line-height: 1.5;
+        }
+
+        .copy-hint {
+            font-size: 12px;
+            color: #5c7a9a;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        /* 历史记录 */
+        .history-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid #c8d6e5;
+        }
+
+        .history-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e3a5f;
+            margin-bottom: 12px;
+        }
+
+        .history-item {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            font-size: 13px;
+        }
+
+        .history-time {
+            color: #5c7a9a;
+            font-size: 11px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        /* 图标按钮 */
+        .icon-btn {
+            background: none;
+            border: 2px solid #c8d6e5;
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .icon-btn:hover {
+            border-color: #667eea;
+            background: #f8f9ff;
+        }
+
+        .header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .header-icons {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* AI 建议区域 */
+        .ai-suggestion-box {
+            background: #f0f4ff;
+            border: 1px solid #c5d0f5;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 8px;
+            font-size: 13px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+        }
+
+        .ai-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .ai-actions .btn {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 13px;
+        }
+
+        /* 导出弹窗列表 */
+        .export-session-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            font-size: 13px;
+        }
+
+        .export-session-item:hover {
+            background: #e9ecef;
+        }
+
+        /* 设置表单 */
+        .settings-group {
+            margin-bottom: 12px;
+        }
+
+        .settings-group label {
+            font-size: 13px;
+            color: #5c7a9a;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .settings-preview {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            font-size: 13px;
+            color: #5c7a9a;
+        }
+
+        .sound-test-area {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .volume-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .volume-wrap .volume-icon {
+            font-size: 14px;
+            cursor: default;
+        }
+        .volume-wrap input[type="range"] {
+            width: 70px;
+            height: 4px;
+            -webkit-appearance: none;
+            appearance: none;
+            background: #2d9c8f;
+            border-radius: 4px;
+            outline: none;
+            cursor: pointer;
+        }
+        .volume-wrap input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 14px;
+            height: 14px;
+            background: #e0b44c;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #1e3a5f;
+        }
+        .volume-wrap input[type="range"]::-moz-range-thumb {
+            width: 14px;
+            height: 14px;
+            background: #e0b44c;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid #1e3a5f;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header-row">
+            <h1 style="margin-bottom: 0;">🍅 决策番茄钟</h1>
+            <div class="header-icons">
+                <button class="icon-btn" id="btnSound" title="音效开关">🔊</button>
+                <div class="volume-wrap">
+                    <span class="volume-icon">🔈</span>
+                    <input type="range" id="volumeSlider" min="0" max="100" value="50" title="音量调节">
+                </div>
+                <button class="icon-btn" id="btnAIConfig" title="AI 助手配置">🤖</button>
+                <button class="icon-btn" id="btnSettings" title="时间设置">⚙️</button>
+            </div>
+        </div>
+        <p class="subtitle" id="subtitle">5分钟拆分 → 25分钟执行 → 5分钟复盘 → 强制产出</p>
+
+        <!-- 阶段指示器 -->
+        <div class="phase-indicator" id="phaseIndicator">
+        </div>
+
+        <!-- 状态消息 -->
+        <div id="statusMessage" class="status-message info">
+            开始新的一天！先输入今天要解决的问题。
+        </div>
+
+        <!-- 计时区 -->
+        <div class="timer-section">
+            <div class="phase-name" id="phaseName">问题拆分阶段</div>
+            <div class="timer-display" id="timerDisplay">05:00</div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+            </div>
+        </div>
+
+        <!-- 产出区 -->
+        <div class="output-section">
+            <div class="output-label">
+                <span id="outputLabelIcon">📝</span>
+                <span id="outputLabelText">本轮产出（必须填写）</span>
+            </div>
+            <div class="output-type-group" id="outputTypeGroup">
+                <button class="output-type-btn" data-value="conclusion" title="一句话核心结论">🎯 主结论</button>
+                <button class="output-type-btn" data-value="concept" title="一个新概念的定义和例子">💡 概念卡</button>
+                <button class="output-type-btn" data-value="evidence" title="支持/反对的关键证据">📊 证据表</button>
+                <button class="output-type-btn" data-value="action" title="5分钟内可启动的下一步">⚡ 最小行动</button>
+            </div>
+            <textarea 
+                class="output-input" 
+                id="outputInput" 
+                placeholder="例如：今天要完成PHE降解实验的样品前处理，具体动作是称取3组沉积物样品各5g"
+            ></textarea>
+            <div class="output-hint" id="outputHint">
+                <span class="output-required">*</span>
+                <span id="hintText">拆分阶段：把大问题变成"今天能完成的、可判断标准"的小任务</span>
+            </div>
+
+            <!-- AI 助手区域 -->
+            <div id="aiAssistArea" class="hidden" style="margin-top: 10px;">
+                <button class="btn btn-secondary" id="btnAISuggest" style="width: 100%;">
+                    🤖 AI 建议
+                </button>
+                <div id="aiLoading" class="hidden" style="text-align: center; padding: 8px; font-size: 13px; color: #667eea;">
+                    ⏳ AI 思考中...
+                </div>
+                <div id="aiSuggestion" class="hidden">
+                    <div id="aiSuggestionText" class="ai-suggestion-box"></div>
+                    <div class="ai-actions">
+                        <button class="btn btn-primary" onclick="applyAISuggestion()">采用建议</button>
+                        <button class="btn btn-secondary" onclick="dismissAISuggestion()">仅参考</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 新想法拦截区 -->
+        <div class="idea-capture">
+            <div class="idea-capture-label">
+                🛡️ 新想法拦截器
+                <span style="font-weight: normal;">（ Enter 保存，本轮结束后再看）</span>
+            </div>
+            <input 
+                type="text" 
+                class="idea-input" 
+                id="ideaInput"
+                placeholder="突然想到的事先写这里，不要跳转..."
+            >
+            <div class="idea-list" id="ideaList"></div>
+        </div>
+
+        <!-- 操作区 -->
+        <div class="action-section">
+            <button class="btn btn-primary" id="btnStart">▶ 开始</button>
+            <button class="btn btn-warning hidden" id="btnPause">⏸ 暂停</button>
+            <button class="btn btn-success" id="btnComplete">✓ 完成本阶段</button>
+            <button class="btn btn-danger" id="btnStuck">🚧 卡住了</button>
+            <button class="btn btn-secondary" id="btnEnd">🏁 结束本轮</button>
+        </div>
+
+        <!-- 历史记录 -->
+        <div class="history-section">
+            <div class="history-title">📋 今日记录</div>
+            <div id="historyList"></div>
+            <div style="display: flex; gap: 10px; margin-top: 12px;">
+                <button class="btn btn-secondary" id="btnExport" style="flex: 1;">
+                    📅 导出到 Google Calendar (.ics)
+                </button>
+                <button class="btn btn-secondary" id="btnExportMarkdown" style="flex: 1;">
+                    📝 导出 Markdown
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：卡住 3 选 1 -->
+    <div class="modal-overlay" id="stuckModal">
+        <div class="modal">
+            <div class="modal-title">🚧 卡住了？</div>
+            <div class="modal-text">不要发散，30秒内选一个：</div>
+            <div class="modal-buttons">
+                <button class="modal-btn" onclick="handleStuckOption('smaller')">
+                    <strong>① 把问题拆更小</strong><br>
+                    <small>当前任务太大，先做最小版本</small>
+                </button>
+                <button class="modal-btn" onclick="handleStuckOption('angle')">
+                    <strong>② 换个角度问</strong><br>
+                    <small>用不同方式重新描述问题</small>
+                </button>
+                <button class="modal-btn" onclick="handleStuckOption('action')">
+                    <strong>③ 先做最小行动</strong><br>
+                    <small>不管完美，先做5分钟能完成的事</small>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：执行中提醒 -->
+    <div class="modal-overlay" id="focusModal">
+        <div class="modal">
+            <div class="modal-title">🎯 还在主线上吗？</div>
+            <div class="modal-text">10分钟过去了，确认你没有发散。</div>
+            <div class="modal-buttons">
+                <button class="modal-btn" onclick="continueTimer()">
+                    <strong>✓ 是的，继续执行</strong>
+                </button>
+                <button class="modal-btn" onclick="captureDistraction()">
+                    <strong>⚠️ 有点走神，记录下来继续</strong>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：止损 -->
+    <div class="modal-overlay" id="stopLossModal">
+        <div class="modal">
+            <div class="modal-title">🛑 强制止损</div>
+            <div class="modal-text">
+                连续两轮未达标。根据你的规则，必须停止当前策略。<br><br>
+                请输出<strong>当前已知的最弱结论</strong>，标记不确定性，然后结束本轮。
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn" onclick="closeModal('stopLossModal')">
+                    <strong>我知道了，输出最弱结论</strong>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：导出 Markdown -->
+    <div class="modal-overlay" id="markdownModal">
+        <div class="modal" style="max-width: 560px;">
+            <div class="modal-title">📝 导出 Markdown</div>
+            <div class="modal-text" id="markdownCopyStatus">
+                今日记录已自动复制到剪贴板！你也可以手动复制下方内容：
+            </div>
+            <textarea class="markdown-export-content" id="markdownOutput" readonly></textarea>
+            <div class="modal-buttons" style="margin-top: 16px;">
+                <button class="modal-btn" onclick="closeModal('markdownModal')" style="text-align: center;">
+                    <strong>关闭</strong>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：导出到日历 -->
+    <div class="modal-overlay" id="exportModal">
+        <div class="modal" style="max-width: 480px; text-align: left;">
+            <div class="modal-title">📅 导出到日历</div>
+            <div class="modal-text">选择要导出的轮次：</div>
+            <div id="exportSessionList" style="max-height: 200px; overflow-y: auto; margin-bottom: 16px;">
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn" onclick="exportSelectedToGCal()">
+                    <strong>📅 打开 Google Calendar</strong><br>
+                    <small>在浏览器中打开预填好的事件页面，点击保存即可</small>
+                </button>
+                <button class="modal-btn" onclick="exportSelectedICS()">
+                    <strong>📥 下载 .ics 文件</strong><br>
+                    <small>下载标准日历文件，可导入任何日历应用</small>
+                </button>
+                <button class="modal-btn" onclick="closeModal('exportModal')" style="text-align: center;">
+                    取消
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：时间设置 -->
+    <div class="modal-overlay" id="settingsModal">
+        <div class="modal" style="max-width: 480px; text-align: left;">
+            <div class="modal-title">⚙️ 时间设置</div>
+            <div class="settings-group">
+                <label style="font-size: 14px; font-weight: 600; color: #1e3a5f; margin-bottom: 8px;">已保存的配置</label>
+                <div id="profilesList" style="max-height: 180px; overflow-y: auto; margin-bottom: 12px;">
+                </div>
+            </div>
+            <div style="border-top: 1px solid #c8d6e5; padding-top: 12px;">
+                <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                    <div style="flex:1;" class="settings-group">
+                        <label>🧩 拆分 (分钟)</label>
+                        <input type="number" id="inputSplit" min="1" max="30" class="settings-input" oninput="updateSettingsPreview()">
+                    </div>
+                    <div style="flex:1;" class="settings-group">
+                        <label>🎯 执行 (分钟)</label>
+                        <input type="number" id="inputExec" min="5" max="90" class="settings-input" oninput="updateSettingsPreview()">
+                    </div>
+                    <div style="flex:1;" class="settings-group">
+                        <label>📝 复盘 (分钟)</label>
+                        <input type="number" id="inputReview" min="1" max="30" class="settings-input" oninput="updateSettingsPreview()">
+                    </div>
+                </div>
+            </div>
+            <div class="settings-group">
+                <label style="font-size: 13px; color: #5c7a9a; display: block; margin-bottom: 8px;">
+                    🔄 执行轮次
+                </label>
+                <div style="display: flex; gap: 8px;">
+                    <button class="output-type-btn" id="btnRounds1" onclick="setRounds(1)"
+                        style="flex:1; text-align:center; padding:10px 8px;">1 轮（拆分 + 执行 + 复盘）</button>
+                    <button class="output-type-btn" id="btnRounds2" onclick="setRounds(2)"
+                        style="flex:1; text-align:center; padding:10px 8px;">2 轮（拆分 + 执行×2 + 复盘×2）</button>
+                </div>
+            </div>
+            <div class="settings-preview" id="settingsPreview">
+                总时长: 65 分钟（5 + 25 + 5 + 25 + 5）
+            </div>
+            <div style="display: flex; gap: 8px; margin-bottom: 12px;">
+                <button class="btn btn-secondary" onclick="saveAsNewProfile()" style="flex:1; padding:10px; font-size:13px;">💾 另存为新配置</button>
+                <button class="btn btn-secondary" onclick="updateCurrentProfile()" style="flex:1; padding:10px; font-size:13px;">🔄 更新当前配置</button>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="applyAndClose()" style="text-align: center;">保存设置并关闭</button>
+                <button class="modal-btn" onclick="closeModal('settingsModal')" style="text-align: center;">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗：AI 助手配置 -->
+    <div class="modal-overlay" id="aiConfigModal">
+        <div class="modal" style="max-width: 480px; text-align: left;">
+            <div class="modal-title">🤖 AI 助手配置</div>
+            <div class="modal-text" style="margin-bottom: 12px;">
+                配置 AI 可以在拆分阶段帮你分析问题，在复盘阶段帮你总结。<br>
+                使用 OpenAI 兼容 API 格式，支持 OpenAI、Claude (via proxy)、本地模型等。
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px;">
+                    <input type="checkbox" id="aiEnabled" onchange="toggleAIConfigFields()"> 启用 AI 助手
+                </label>
+            </div>
+            <div id="aiConfigFields">
+                <div class="settings-group">
+                    <label>API Endpoint</label>
+                    <input type="text" id="aiEndpoint" class="settings-input" placeholder="https://api.openai.com/v1/chat/completions">
+                </div>
+                <div class="settings-group">
+                    <label>API Key</label>
+                    <input type="password" id="aiApiKey" class="settings-input" placeholder="sk-...">
+                </div>
+                <div class="settings-group">
+                    <label>模型名称</label>
+                    <input type="text" id="aiModel" class="settings-input" placeholder="gpt-4o-mini">
+                </div>
+                <button class="btn btn-secondary" onclick="testAIConnection()" style="width: 100%; margin-bottom: 8px;">
+                    🔗 测试连接
+                </button>
+                <div id="aiTestResult" style="font-size: 13px; display: none; padding: 8px; border-radius: 6px; margin-bottom: 12px;"></div>
+                <div style="font-size: 12px; color: #94a8be; margin-bottom: 12px;">
+                    ⚠️ API Key 存储在浏览器本地，请勿在公共电脑上使用。
+                </div>
+            </div>
+            <div class="modal-buttons">
+                <button class="btn btn-primary" onclick="saveAIConfig()" style="text-align: center;">保存</button>
+                <button class="modal-btn" onclick="closeModal('aiConfigModal')" style="text-align: center;">取消</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ============ 配置 ============
+        const DEFAULT_ROUNDS = 2;
+        function buildPhaseOrder(rounds) {
+            if (rounds === 1) return ['split', 'exec1', 'review1'];
+            return ['split', 'exec1', 'review1', 'exec2', 'review2'];
+        }
+        let PHASE_ORDER = buildPhaseOrder(DEFAULT_ROUNDS);
+
+        const TIME_PRESETS = {
+            classic: { name: '经典', split: 5, exec: 25, review: 5, rounds: 2 },
+            short:   { name: '短时', split: 3, exec: 15, review: 3, rounds: 1 },
+            long:    { name: '长时', split: 10, exec: 45, review: 10, rounds: 2 }
+        };
+        const PROFILES_KEY = 'pomodoro_time_profiles';
+        const ACTIVE_PROFILE_KEY = 'pomodoro_active_profile';
+        const SOUND_PREF_KEY = 'pomodoro_sound_muted';
+        const AI_CONFIG_KEY = 'pomodoro_ai_config';
+        const MAX_PROFILES = 5;
+
+        let PHASES = {};
+
+        function buildPhases(s) {
+            var phases = {
+                split:   { name: '问题拆分',   minutes: s.split,  icon: '🧩', hint: '拆分阶段：把大问题变成"今天能完成的、可判断标准"的小任务' },
+                exec1:   { name: '执行轮次1',  minutes: s.exec,   icon: '🎯', hint: '执行阶段：只做拆分好的任务，不想别的' },
+                review1: { name: '复盘轮次1',  minutes: s.review, icon: '📝', hint: '复盘阶段：是否达到完成标准？原因是什么？' }
+            };
+            if (s.rounds >= 2) {
+                phases.exec2   = { name: '执行轮次2',  minutes: s.exec,   icon: '🎯', hint: '第二轮执行：继续深入或调整方向' };
+                phases.review2 = { name: '复盘轮次2',  minutes: s.review, icon: '📝', hint: '最终复盘：输出主结论/概念卡/证据表/最小行动' };
+            }
+            return phases;
+        }
+
+        // ============ 配置档案管理 ============
+        function loadProfiles() {
+            try { return JSON.parse(localStorage.getItem(PROFILES_KEY)) || []; }
+            catch(e) { return []; }
+        }
+
+        function saveProfiles(list) {
+            localStorage.setItem(PROFILES_KEY, JSON.stringify(list));
+        }
+
+        function getActiveProfileName() {
+            return localStorage.getItem(ACTIVE_PROFILE_KEY) || '';
+        }
+
+        function getActiveProfile() {
+            const name = getActiveProfileName();
+            const profiles = loadProfiles();
+            const found = profiles.find(p => p.name === name);
+            return found || { name: '经典', split: 5, exec: 25, review: 5, rounds: 2 };
+        }
+
+        // ============ 状态 ============
+        let currentPhaseIndex = 0;
+        let currentRounds = DEFAULT_ROUNDS;
+        let tempRounds = DEFAULT_ROUNDS;
+        let timeRemaining = 0;
+        let totalTime = 0;
+        let timerInterval = null;
+        let isRunning = false;
+        let isPaused = false;
+        let currentSession = {
+            date: new Date().toISOString().split('T')[0],
+            startTime: null,
+            phases: [],
+            ideas: [],
+            taskName: ''
+        };
+        let focusCheckTriggered = false;
+        let soundMuted = localStorage.getItem(SOUND_PREF_KEY) === 'true';
+        const VOLUME_PREF_KEY = 'pomodoro_mokugyo_volume';
+        let mokugyoVolume = parseInt(localStorage.getItem(VOLUME_PREF_KEY)) || 50;
+        let audioCtx = null;
+
+        // ============ DOM 元素 ============
+        const timerDisplay = document.getElementById('timerDisplay');
+        const phaseName = document.getElementById('phaseName');
+        const progressFill = document.getElementById('progressFill');
+        const outputInput = document.getElementById('outputInput');
+        const outputTypeGroup = document.getElementById('outputTypeGroup');
+        const outputHint = document.getElementById('hintText');
+        const statusMessage = document.getElementById('statusMessage');
+        const ideaInput = document.getElementById('ideaInput');
+        const ideaList = document.getElementById('ideaList');
+        const historyList = document.getElementById('historyList');
+
+        const btnStart = document.getElementById('btnStart');
+        const btnPause = document.getElementById('btnPause');
+        const btnComplete = document.getElementById('btnComplete');
+        const btnStuck = document.getElementById('btnStuck');
+        const btnEnd = document.getElementById('btnEnd');
+        const btnExport = document.getElementById('btnExport');
+        const btnExportMarkdown = document.getElementById('btnExportMarkdown');
+        const markdownOutput = document.getElementById('markdownOutput');
+        const markdownCopyStatus = document.getElementById('markdownCopyStatus');
+        const btnSettings = document.getElementById('btnSettings');
+        const btnSound = document.getElementById('btnSound');
+        const volumeSlider = document.getElementById('volumeSlider');
+        const btnAIConfig = document.getElementById('btnAIConfig');
+        const btnAISuggest = document.getElementById('btnAISuggest');
+
+        // ============ 初始化 ============
+        function init() {
+            // 加载配置并构建 PHASES
+            const profile = getActiveProfile();
+            currentRounds = profile.rounds || DEFAULT_ROUNDS;
+            PHASE_ORDER = buildPhaseOrder(currentRounds);
+            PHASES = buildPhases({ split: profile.split, exec: profile.exec, review: profile.review, rounds: currentRounds });
+            timeRemaining = PHASES.split.minutes * 60;
+            totalTime = timeRemaining;
+
+            // 音效按钮状态
+            btnSound.textContent = soundMuted ? '🔇' : '🔊';
+            volumeSlider.value = mokugyoVolume;
+
+            // 确保默认配置存在
+            if (loadProfiles().length === 0) {
+                saveProfiles([{ name: '经典', split: 5, exec: 25, review: 5, rounds: 2 }]);
+                localStorage.setItem(ACTIVE_PROFILE_KEY, '经典');
+            }
+
+            // 请求浏览器通知权限（阶段完成时弹桌面通知）
+            if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+                Notification.requestPermission();
+            }
+
+            loadTodayHistory();
+            renderPhaseIndicator();
+            updateSubtitle();
+            updateTimerDisplay();
+            setupEventListeners();
+        }
+
+        function setupEventListeners() {
+            btnStart.addEventListener('click', startTimer);
+            btnPause.addEventListener('click', pauseTimer);
+            btnComplete.addEventListener('click', completePhase);
+            btnStuck.addEventListener('click', showStuckModal);
+            btnEnd.addEventListener('click', endSession);
+            btnExport.addEventListener('click', exportICS);
+            btnExportMarkdown.addEventListener('click', exportMarkdown);
+            btnSettings.addEventListener('click', openSettings);
+            btnSound.addEventListener('click', toggleSound);
+            volumeSlider.addEventListener('input', function() {
+                mokugyoVolume = parseInt(this.value);
+                localStorage.setItem(VOLUME_PREF_KEY, mokugyoVolume.toString());
+            });
+
+            ideaInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter' && ideaInput.value.trim()) {
+                    captureIdea(ideaInput.value.trim());
+                    ideaInput.value = '';
+                }
+            });
+
+            outputTypeGroup.addEventListener('click', (e) => {
+                var btn = e.target.closest('.output-type-btn');
+                if (btn) {
+                    outputTypeGroup.querySelectorAll('.output-type-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    updateOutputPlaceholder(btn.dataset.value);
+                }
+            });
+        }
+
+        // ============ 计时器控制 ============
+        function startTimer() {
+            const currentPhaseKey = PHASE_ORDER[currentPhaseIndex];
+
+            // 拆分阶段必须填写产出才能开始
+            if (currentPhaseKey === 'split' && !outputInput.value.trim()) {
+                showStatus('拆分阶段必须先写出"具体下一步动作"才能开始！', 'warning');
+                outputInput.focus();
+                return;
+            }
+
+            if (!currentSession.startTime) {
+                currentSession.startTime = new Date().toISOString();
+                currentSession.taskName = outputInput.value.trim().substring(0, 50);
+            }
+
+            isRunning = true;
+            isPaused = false;
+            btnStart.classList.add('hidden');
+            btnPause.classList.remove('hidden');
+            btnSettings.disabled = true;
+            btnSettings.style.opacity = '0.5';
+            btnSettings.style.cursor = 'not-allowed';
+            showStatus('专注中... 保持主线，不要发散', 'info');
+            Sounds.phaseStart();
+
+            timerInterval = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+                updateProgress();
+
+                // 执行阶段10分钟提醒（仅当执行时间>=10分钟时触发）
+                if (currentPhaseKey.startsWith('exec') &&
+                    !focusCheckTriggered &&
+                    PHASES[currentPhaseKey].minutes >= 10 &&
+                    timeRemaining <= (PHASES[currentPhaseKey].minutes - 10) * 60) {
+                    focusCheckTriggered = true;
+                    Sounds.focusCheck();
+                    pauseTimer();
+                    showModal('focusModal');
+                }
+
+                if (timeRemaining <= 10 && timeRemaining > 0) Sounds.countdownTick();
+                if (timeRemaining <= 0) {
+                    completePhase();
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            isRunning = false;
+            isPaused = true;
+            clearInterval(timerInterval);
+            btnStart.classList.remove('hidden');
+            btnPause.classList.add('hidden');
+            btnSettings.disabled = false;
+            btnSettings.style.opacity = '';
+            btnSettings.style.cursor = '';
+            showStatus('已暂停', 'warning');
+        }
+
+        function continueTimer() {
+            closeModal('focusModal');
+            startTimer();
+        }
+
+        function captureDistraction() {
+            const distraction = prompt('你在想什么？写下来，继续执行：');
+            if (distraction) {
+                captureIdea('【走神】' + distraction);
+            }
+            closeModal('focusModal');
+            startTimer();
+        }
+
+        // ============ 阶段完成 ============
+        function completePhase() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            isPaused = false;
+            focusCheckTriggered = false;
+            Sounds.phaseComplete();
+
+            const currentPhaseKey = PHASE_ORDER[currentPhaseIndex];
+            const output = outputInput.value.trim();
+
+            // 执行阶段必须填写产出
+            if (currentPhaseKey.startsWith('exec') && !output) {
+                showStatus('执行阶段必须有产出！没有产出不算完成一轮。', 'danger');
+                btnStart.classList.remove('hidden');
+                btnPause.classList.add('hidden');
+                return;
+            }
+
+            // 保存阶段记录
+            currentSession.phases.push({
+                phase: currentPhaseKey,
+                phaseName: PHASES[currentPhaseKey].name,
+                outputType: getOutputType(),
+                outputTypeName: outputTypeGroup.querySelector('.output-type-btn.active').textContent.trim(),
+                output: output,
+                completedAt: new Date().toISOString()
+            });
+
+            // 标记阶段完成
+            document.querySelector(`[data-phase="${currentPhaseKey}"]`).classList.add('completed');
+            document.querySelector(`[data-phase="${currentPhaseKey}"]`).classList.remove('active');
+
+            // 检查是否是复盘阶段且未达标（仅2轮模式）
+            if (currentPhaseKey === 'review1' && currentRounds >= 2 && !checkStandardMet()) {
+                showStatus('第一轮未达标，进入第二轮执行。', 'warning');
+            }
+
+            // 进入下一阶段
+            currentPhaseIndex++;
+
+            if (currentPhaseIndex >= PHASE_ORDER.length) {
+                finishSession();
+                return;
+            }
+
+            // 两轮未达标强制止损（仅2轮模式）
+            if (currentRounds >= 2 && currentPhaseIndex === PHASE_ORDER.length - 1 && !checkStandardMet()) {
+                showModal('stopLossModal');
+                showStatus('🛑 强制止损：两轮未达标，必须输出最弱结论', 'danger');
+            }
+
+            // 切换阶段
+            const completedPhaseKey = PHASE_ORDER[currentPhaseIndex - 1];
+            const nextPhaseKey = PHASE_ORDER[currentPhaseIndex];
+            sendNotification(
+                PHASES[completedPhaseKey].icon + ' ' + PHASES[completedPhaseKey].name + ' 完成',
+                '下一阶段：' + PHASES[nextPhaseKey].icon + ' ' + PHASES[nextPhaseKey].name
+            );
+            timeRemaining = PHASES[nextPhaseKey].minutes * 60;
+            totalTime = timeRemaining;
+
+            updatePhaseIndicator();
+            updatePhaseUI();
+            updateTimerDisplay();
+            updateProgress();
+
+            // 清空产出区（保留任务名）
+            outputInput.value = '';
+
+            btnStart.classList.remove('hidden');
+            btnPause.classList.add('hidden');
+
+            showStatus(`进入${PHASES[nextPhaseKey].name}，请准备产出`, 'success');
+        }
+
+        function checkStandardMet() {
+            // 简化判断：如果有review1产出且用户认为达标
+            const review1 = currentSession.phases.find(p => p.phase === 'review1');
+            if (!review1) return false;
+            return review1.output.toLowerCase().includes('达标') || 
+                   review1.output.toLowerCase().includes('完成') ||
+                   review1.output.toLowerCase().includes('yes');
+        }
+
+        function finishSession() {
+            btnStart.disabled = true;
+            btnComplete.disabled = true;
+            btnStuck.disabled = true;
+            btnSettings.disabled = false;
+            btnSettings.style.opacity = '';
+            btnSettings.style.cursor = '';
+            showStatus('本轮结束！请导出到日历或开始新一轮。', 'success');
+            Sounds.sessionComplete();
+            sendNotification('🏁 番茄钟完成', '任务「' + currentSession.taskName + '」— 全部阶段已完成！');
+            saveSession();
+            renderHistory();
+        }
+
+        function endSession() {
+            if (confirm('确定要结束本轮吗？当前进度将保存。')) {
+                clearInterval(timerInterval);
+                isRunning = false;
+                btnSettings.disabled = false;
+                btnSettings.style.opacity = '';
+                btnSettings.style.cursor = '';
+                saveSession();
+                renderHistory();
+                showStatus('本轮已保存，可以在下方导出到日历。', 'info');
+            }
+        }
+
+        // ============ UI 更新 ============
+        function updatePhaseIndicator() {
+            document.querySelectorAll('.phase-step').forEach((step, index) => {
+                step.classList.remove('active');
+                if (index === currentPhaseIndex) {
+                    step.classList.add('active');
+                }
+            });
+        }
+
+        function updatePhaseUI() {
+            const currentPhaseKey = PHASE_ORDER[currentPhaseIndex];
+            const phase = PHASES[currentPhaseKey];
+            phaseName.textContent = phase.name + '阶段';
+            outputHint.textContent = phase.hint;
+            document.getElementById('outputLabelIcon').textContent = phase.icon;
+
+            // 不同阶段调整默认产出类型
+            if (currentPhaseKey === 'split') {
+                setOutputType('action');
+            } else if (currentPhaseKey.startsWith('exec')) {
+                setOutputType('conclusion');
+            } else if (currentPhaseKey.startsWith('review')) {
+                setOutputType('evidence');
+            }
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            timerDisplay.textContent = 
+                String(minutes).padStart(2, '0') + ':' + String(seconds).padStart(2, '0');
+
+            if (timeRemaining <= 60) {
+                timerDisplay.classList.add('warning');
+            } else {
+                timerDisplay.classList.remove('warning');
+            }
+        }
+
+        function updateProgress() {
+            const progress = ((totalTime - timeRemaining) / totalTime) * 100;
+            progressFill.style.width = progress + '%';
+        }
+
+        function showStatus(message, type) {
+            statusMessage.textContent = message;
+            statusMessage.className = 'status-message ' + type;
+        }
+
+        function updatePhaseIndicatorLabels() {
+            document.querySelectorAll('.phase-step').forEach((step, index) => {
+                const phaseKey = PHASE_ORDER[index];
+                if (PHASES[phaseKey]) {
+                    step.querySelector('small').textContent = PHASES[phaseKey].minutes + 'min';
+                }
+            });
+        }
+
+        function renderPhaseIndicator() {
+            var container = document.getElementById('phaseIndicator');
+            container.innerHTML = '';
+            PHASE_ORDER.forEach(function(key, index) {
+                var phase = PHASES[key];
+                var div = document.createElement('div');
+                div.className = 'phase-step' + (index === 0 ? ' active' : '');
+                div.setAttribute('data-phase', key);
+                div.innerHTML = phase.icon + ' ' + phase.name.replace('轮次', '') + '<br><small>' + phase.minutes + 'min</small>';
+                container.appendChild(div);
+            });
+        }
+
+        function updateSubtitle() {
+            const s = getActiveProfile();
+            var r = s.rounds || DEFAULT_ROUNDS;
+            var text = s.split + '分钟拆分 → ' + s.exec + '分钟执行 → ' + s.review + '分钟复盘';
+            if (r >= 2) {
+                text += ' → ' + s.exec + '分钟执行 → ' + s.review + '分钟复盘';
+            }
+            document.getElementById('subtitle').textContent = text + ' → 强制产出';
+        }
+
+        // ============ 音效系统（木鱼） ============
+        function getAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            return audioCtx;
+        }
+
+        // 木鱼音色合成（带混响空灵版）
+        // intensity: 0.3~1.0 敲击力度
+        function playMokugyo(intensity) {
+            if (soundMuted) return;
+            intensity = intensity || 0.7;
+            try {
+                var ctx = getAudioContext();
+                var t = ctx.currentTime;
+                var masterVol = 1.2 * Math.pow(mokugyoVolume / 100, 1.5);
+
+                // ---- 敲击瞬态（白噪声通过带通滤波） ----
+                var bufferSize = Math.floor(ctx.sampleRate * 0.02);
+                var noiseBuffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                var data = noiseBuffer.getChannelData(0);
+                for (var i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1);
+                }
+                var noiseSrc = ctx.createBufferSource();
+                noiseSrc.buffer = noiseBuffer;
+
+                var bpFilter = ctx.createBiquadFilter();
+                bpFilter.type = 'bandpass';
+                bpFilter.frequency.value = 2400;
+                bpFilter.Q.value = 4;
+
+                var noiseGain = ctx.createGain();
+                noiseGain.gain.setValueAtTime(masterVol * 0.8 * intensity, t);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.03 * intensity);
+
+                noiseSrc.connect(bpFilter);
+                bpFilter.connect(noiseGain);
+                noiseGain.connect(ctx.destination);
+                noiseSrc.start(t);
+                noiseSrc.stop(t + 0.04 * intensity);
+
+                // ---- 木鱼腔体共振（带通噪声层） ----
+                var bufferSize2 = Math.floor(ctx.sampleRate * 0.4);
+                var noiseBuffer2 = ctx.createBuffer(1, bufferSize2, ctx.sampleRate);
+                var data2 = noiseBuffer2.getChannelData(0);
+                for (var j = 0; j < bufferSize2; j++) {
+                    data2[j] = (Math.random() * 2 - 1);
+                }
+                var noiseSrc2 = ctx.createBufferSource();
+                noiseSrc2.buffer = noiseBuffer2;
+
+                var bodyFilter = ctx.createBiquadFilter();
+                bodyFilter.type = 'bandpass';
+                bodyFilter.frequency.value = 880;
+                bodyFilter.Q.value = 5;
+
+                var bodyGain = ctx.createGain();
+                bodyGain.gain.setValueAtTime(masterVol * 0.45 * intensity, t + 0.003);
+                bodyGain.gain.exponentialRampToValueAtTime(0.001, t + 0.35 * intensity);
+
+                noiseSrc2.connect(bodyFilter);
+                bodyFilter.connect(bodyGain);
+                bodyGain.connect(ctx.destination);
+                noiseSrc2.start(t);
+                noiseSrc2.stop(t + 0.4 * intensity);
+
+                // ---- 底层木音（低频共振） ----
+                var res1 = ctx.createOscillator();
+                res1.type = 'sine';
+                res1.frequency.setValueAtTime(760, t);
+                var gain1 = ctx.createGain();
+                gain1.gain.setValueAtTime(masterVol * 0.32 * intensity, t);
+                gain1.gain.exponentialRampToValueAtTime(0.001, t + 0.28 * intensity);
+                res1.connect(gain1);
+                gain1.connect(ctx.destination);
+                res1.start(t);
+                res1.stop(t + 0.3 * intensity);
+
+                // ---- 高频泛音（木质明亮感） ----
+                var res2 = ctx.createOscillator();
+                res2.type = 'sine';
+                res2.frequency.setValueAtTime(1520, t);
+                var gain2 = ctx.createGain();
+                gain2.gain.setValueAtTime(masterVol * 0.1 * intensity, t);
+                gain2.gain.exponentialRampToValueAtTime(0.001, t + 0.12 * intensity);
+                res2.connect(gain2);
+                gain2.connect(ctx.destination);
+                res2.start(t);
+                res2.stop(t + 0.14 * intensity);
+
+                // ---- 空灵共鸣层（长衰减，带混响） ----
+                var reverbGain = ctx.createGain();
+                reverbGain.gain.value = 0.3;
+                reverbGain.connect(ctx.destination);
+
+                // 空灵混响（ConvolverNode 合成脉冲响应）
+                var reverbLen = ctx.sampleRate * 1.8;
+                var reverbBuf = ctx.createBuffer(1, reverbLen, ctx.sampleRate);
+                var reverbData = reverbBuf.getChannelData(0);
+                for (var k = 0; k < reverbLen; k++) {
+                    reverbData[k] = (Math.random() * 2 - 1) * Math.pow(1 - k / reverbLen, 2.5);
+                }
+                var conv = ctx.createConvolver();
+                conv.buffer = reverbBuf;
+                var dryGain = ctx.createGain();
+                dryGain.gain.value = 0.75;
+                var wetGain = ctx.createGain();
+                wetGain.gain.value = 0.25;
+                conv.connect(wetGain);
+                wetGain.connect(reverbGain);
+                dryGain.connect(reverbGain);
+
+                // 超八度空灵泛音（经混响扩散）
+                var ethereal = ctx.createOscillator();
+                ethereal.type = 'sine';
+                ethereal.frequency.setValueAtTime(1520, t);
+                var ethGain = ctx.createGain();
+                ethGain.gain.setValueAtTime(masterVol * 0.06 * intensity, t);
+                ethGain.gain.exponentialRampToValueAtTime(0.001, t + 0.8 * intensity);
+                ethereal.connect(ethGain);
+                ethGain.connect(conv);
+                ethGain.connect(dryGain);
+                ethereal.start(t);
+                ethereal.stop(t + 0.85 * intensity);
+
+                // 深沉底层共鸣（经混响扩散，营造空间感）
+                var subEthereal = ctx.createOscillator();
+                subEthereal.type = 'sine';
+                subEthereal.frequency.setValueAtTime(380, t);
+                var subGain = ctx.createGain();
+                subGain.gain.setValueAtTime(masterVol * 0.04 * intensity, t);
+                subGain.gain.exponentialRampToValueAtTime(0.001, t + 1.2 * intensity);
+                subEthereal.connect(subGain);
+                subGain.connect(conv);
+                subGain.connect(dryGain);
+                subEthereal.start(t);
+                subEthereal.stop(t + 1.25 * intensity);
+
+            } catch(e) {}
+        }
+
+        var Sounds = {
+            // 阶段开始：轻敲2下
+            phaseStart: function() {
+                playMokugyo(0.5);
+                setTimeout(function() { playMokugyo(0.6); }, 250);
+            },
+            // 阶段完成：重敲1下
+            phaseComplete: function() {
+                playMokugyo(1.0);
+            },
+            // 走神提醒：快速连敲3下
+            focusCheck: function() {
+                playMokugyo(0.7);
+                setTimeout(function() { playMokugyo(0.8); }, 120);
+                setTimeout(function() { playMokugyo(0.9); }, 240);
+            },
+            // 整轮完成：连续敲5下
+            sessionComplete: function() {
+                for (var i = 0; i < 5; i++) {
+                    (function(idx) {
+                        setTimeout(function() { playMokugyo(0.5 + idx * 0.1); }, idx * 180);
+                    })(i);
+                }
+            },
+            // 最后10秒倒计时：轻敲1下
+            countdownTick: function() {
+                playMokugyo(0.3);
+            }
+        };
+
+        function toggleSound() {
+            soundMuted = !soundMuted;
+            localStorage.setItem(SOUND_PREF_KEY, soundMuted.toString());
+            btnSound.textContent = soundMuted ? '🔇' : '🔊';
+            if (!soundMuted) Sounds.phaseStart();
+        }
+
+        // 浏览器桌面通知
+        function sendNotification(title, body) {
+            if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+            new Notification(title, {
+                body: body,
+                tag: 'pomodoro-phase',
+                requireInteraction: true
+            });
+        }
+
+        // ============ 时间设置 ============
+        function openSettings() {
+            if (isRunning) return;
+
+            const profiles = loadProfiles();
+            const activeName = getActiveProfileName();
+            const active = getActiveProfile();
+
+            // 填充配置列表
+            const listEl = document.getElementById('profilesList');
+            if (profiles.length === 0) {
+                listEl.innerHTML = '<div style="font-size:13px;color:#94a8be;padding:8px;">暂无保存的配置</div>';
+            } else {
+                listEl.innerHTML = profiles.map(function(p) {
+                    const isActive = p.name === activeName;
+                    var r = p.rounds || DEFAULT_ROUNDS;
+                    const total = p.split + p.exec * r + p.review * r;
+                    return '<div class="export-session-item" style="' + (isActive ? 'border:2px solid #667eea;background:#f0f4ff;' : '') + '">' +
+                        '<div style="flex:1;">' +
+                        '<strong>' + (isActive ? '● ' : '') + p.name + '</strong>' +
+                        '<small style="color:#5c7a9a;margin-left:8px;">(' + p.split + '/' + p.exec + '/' + p.review + ' · ' + r + '轮 · ' + total + 'min)</small>' +
+                        '</div>' +
+                        '<button class="btn btn-secondary" style="flex:none;min-width:auto;padding:4px 10px;font-size:12px;" onclick="loadProfile(\'' + p.name.replace(/'/g, "\\'") + '\')">加载</button>' +
+                        '<button class="btn btn-danger" style="flex:none;min-width:auto;padding:4px 10px;font-size:12px;margin-left:4px;" onclick="deleteProfile(\'' + p.name.replace(/'/g, "\\'") + '\')">删除</button>' +
+                        '</div>';
+                }).join('');
+            }
+
+            // 填充当前值到输入框
+            document.getElementById('inputSplit').value = active.split;
+            document.getElementById('inputExec').value = active.exec;
+            document.getElementById('inputReview').value = active.review;
+
+            // 设置轮次选择器
+            tempRounds = active.rounds || DEFAULT_ROUNDS;
+            document.getElementById('btnRounds1').classList.toggle('active', tempRounds === 1);
+            document.getElementById('btnRounds2').classList.toggle('active', tempRounds === 2);
+
+            updateSettingsPreview();
+            showModal('settingsModal');
+        }
+
+        function loadProfile(name) {
+            const profiles = loadProfiles();
+            const p = profiles.find(function(item) { return item.name === name; });
+            if (!p) return;
+
+            document.getElementById('inputSplit').value = p.split;
+            document.getElementById('inputExec').value = p.exec;
+            document.getElementById('inputReview').value = p.review;
+
+            // 设置轮次
+            tempRounds = p.rounds || DEFAULT_ROUNDS;
+            document.getElementById('btnRounds1').classList.toggle('active', tempRounds === 1);
+            document.getElementById('btnRounds2').classList.toggle('active', tempRounds === 2);
+
+            localStorage.setItem(ACTIVE_PROFILE_KEY, name);
+            updateSettingsPreview();
+            openSettings(); // 刷新列表高亮
+        }
+
+        function saveAsNewProfile() {
+            const profiles = loadProfiles();
+            if (profiles.length >= MAX_PROFILES) {
+                showStatus('最多保存 ' + MAX_PROFILES + ' 个配置，请先删除一个', 'warning');
+                return;
+            }
+
+            const name = prompt('请输入配置名称（如：专注写作、快速决策）：');
+            if (!name || !name.trim()) return;
+            const trimName = name.trim();
+
+            if (profiles.find(function(p) { return p.name === trimName; })) {
+                showStatus('名称 "' + trimName + '" 已存在，请更换', 'warning');
+                return;
+            }
+
+            const split = clamp(parseInt(document.getElementById('inputSplit').value) || 5, 1, 30);
+            const exec = clamp(parseInt(document.getElementById('inputExec').value) || 25, 5, 90);
+            const review = clamp(parseInt(document.getElementById('inputReview').value) || 5, 1, 30);
+
+            profiles.push({ name: trimName, split: split, exec: exec, review: review, rounds: tempRounds });
+            saveProfiles(profiles);
+            localStorage.setItem(ACTIVE_PROFILE_KEY, trimName);
+            showStatus('配置 "' + trimName + '" 已保存', 'success');
+            openSettings();
+        }
+
+        function updateCurrentProfile() {
+            const activeName = getActiveProfileName();
+            const profiles = loadProfiles();
+            const idx = profiles.findIndex(function(p) { return p.name === activeName; });
+
+            if (idx === -1) {
+                showStatus('请先选择一个配置', 'warning');
+                return;
+            }
+
+            profiles[idx].split = clamp(parseInt(document.getElementById('inputSplit').value) || 5, 1, 30);
+            profiles[idx].exec = clamp(parseInt(document.getElementById('inputExec').value) || 25, 5, 90);
+            profiles[idx].review = clamp(parseInt(document.getElementById('inputReview').value) || 5, 1, 30);
+            profiles[idx].rounds = tempRounds;
+
+            saveProfiles(profiles);
+            showStatus('配置 "' + activeName + '" 已更新', 'success');
+            openSettings();
+        }
+
+        function deleteProfile(name) {
+            const profiles = loadProfiles();
+            if (profiles.length <= 1) {
+                showStatus('至少保留一个配置', 'warning');
+                return;
+            }
+            if (!confirm('确定删除配置 "' + name + '" 吗？')) return;
+
+            const newProfiles = profiles.filter(function(p) { return p.name !== name; });
+            saveProfiles(newProfiles);
+
+            // 如果删的是当前激活的，切换到第一个
+            if (getActiveProfileName() === name) {
+                localStorage.setItem(ACTIVE_PROFILE_KEY, newProfiles[0].name);
+            }
+
+            showStatus('配置 "' + name + '" 已删除', 'info');
+            openSettings();
+        }
+
+        function applyAndClose() {
+            const split = clamp(parseInt(document.getElementById('inputSplit').value) || 5, 1, 30);
+            const exec = clamp(parseInt(document.getElementById('inputExec').value) || 25, 5, 90);
+            const review = clamp(parseInt(document.getElementById('inputReview').value) || 5, 1, 30);
+
+            // 回写到输入框（修正边界值）
+            document.getElementById('inputSplit').value = split;
+            document.getElementById('inputExec').value = exec;
+            document.getElementById('inputReview').value = review;
+
+            // 重建 PHASE_ORDER、PHASES 并更新 UI
+            currentRounds = tempRounds;
+            PHASE_ORDER = buildPhaseOrder(currentRounds);
+            PHASES = buildPhases({ split: split, exec: exec, review: review, rounds: currentRounds });
+            timeRemaining = PHASES.split.minutes * 60;
+            totalTime = timeRemaining;
+            currentPhaseIndex = 0;
+
+            renderPhaseIndicator();
+            updateSubtitle();
+            updateTimerDisplay();
+            updateProgress();
+            updatePhaseUI();
+
+            closeModal('settingsModal');
+            var r = currentRounds;
+            var total = split + exec * r + review * r;
+            showStatus('设置已保存，总时长 ' + total + ' 分钟', 'success');
+        }
+
+        function onPresetChange() {
+            var preset = document.getElementById('presetSelect').value;
+            if (preset !== 'custom' && TIME_PRESETS[preset]) {
+                document.getElementById('inputSplit').value = TIME_PRESETS[preset].split;
+                document.getElementById('inputExec').value = TIME_PRESETS[preset].exec;
+                document.getElementById('inputReview').value = TIME_PRESETS[preset].review;
+            }
+            updateSettingsPreview();
+        }
+
+        function updateSettingsPreview() {
+            var split = clamp(parseInt(document.getElementById('inputSplit').value) || 0, 1, 30);
+            var exec = clamp(parseInt(document.getElementById('inputExec').value) || 0, 5, 90);
+            var review = clamp(parseInt(document.getElementById('inputReview').value) || 0, 1, 30);
+            var r = tempRounds || DEFAULT_ROUNDS;
+            var total = split + exec * r + review * r;
+            var breakdown = split + ' + ' + exec + ' + ' + review;
+            if (r >= 2) breakdown += ' + ' + exec + ' + ' + review;
+            document.getElementById('settingsPreview').textContent =
+                '总时长: ' + total + ' 分钟（' + r + '轮: ' + breakdown + '）';
+        }
+
+        function clamp(val, min, max) {
+            return Math.max(min, Math.min(max, val));
+        }
+
+        // ============ 产出类型胶囊按钮 ============
+        function getOutputType() {
+            var active = outputTypeGroup.querySelector('.output-type-btn.active');
+            return active ? active.dataset.value : 'conclusion';
+        }
+
+        function setOutputType(value) {
+            outputTypeGroup.querySelectorAll('.output-type-btn').forEach(function(btn) {
+                btn.classList.toggle('active', btn.dataset.value === value);
+            });
+            updateOutputPlaceholder(value);
+        }
+
+        // ============ 轮次选择器 ============
+        function setRounds(n) {
+            tempRounds = n;
+            document.getElementById('btnRounds1').classList.toggle('active', n === 1);
+            document.getElementById('btnRounds2').classList.toggle('active', n === 2);
+            updateSettingsPreview();
+        }
+
+        function updateOutputPlaceholder(type) {
+            var placeholders = {
+                conclusion: '例如：核心结论是 XXX，因为 YYY 证据表明...',
+                concept:    '例如：概念卡：「XX效应」— 当 A 条件满足时，B 会自动发生...',
+                evidence:   '例如：✅ 支持：实验数据表明... | ❌ 反对：但 XX 情况下不成立...',
+                action:     '例如：今天要完成PHE降解实验的样品前处理，具体动作是称取3组沉积物样品各5g'
+            };
+            outputInput.placeholder = placeholders[type] || placeholders.conclusion;
+        }
+
+        // ============ 新想法拦截 ============
+        function captureIdea(idea) {
+            currentSession.ideas.push({
+                text: idea,
+                capturedAt: new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })
+            });
+            renderIdeas();
+        }
+
+        function renderIdeas() {
+            if (currentSession.ideas.length === 0) {
+                ideaList.innerHTML = '';
+                return;
+            }
+            ideaList.innerHTML = currentSession.ideas.map((idea, index) => 
+                `<div class="idea-item">${index + 1}. [${idea.capturedAt}] ${idea.text}</div>`
+            ).join('');
+        }
+
+        // ============ 卡住处理 ============
+        function showStuckModal() {
+            pauseTimer();
+            showModal('stuckModal');
+        }
+
+        function handleStuckOption(option) {
+            closeModal('stuckModal');
+            const templates = {
+                smaller: '【拆小】当前任务太大，先完成最小版本：',
+                angle: '【换角度】换个问法重新思考：',
+                action: '【最小行动】不管完美，先做：'
+            };
+            outputInput.value = templates[option] + '\n' + (outputInput.value || '');
+            outputInput.focus();
+            showStatus('已选择应对策略，继续执行', 'info');
+            startTimer();
+        }
+
+        // ============ 弹窗控制 ============
+        function showModal(id) {
+            document.getElementById(id).classList.add('show');
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('show');
+        }
+
+        // ============ 数据持久化 ============
+        function saveSession() {
+            if (currentSession.phases.length === 0 && currentSession.ideas.length === 0) return;
+
+            const key = 'pomodoro_' + currentSession.date;
+            const sessions = JSON.parse(localStorage.getItem(key) || '[]');
+            sessions.push({...currentSession});
+            localStorage.setItem(key, JSON.stringify(sessions));
+        }
+
+        function loadTodayHistory() {
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const key = 'pomodoro_' + new Date().toISOString().split('T')[0];
+            const sessions = JSON.parse(localStorage.getItem(key) || '[]');
+
+            if (sessions.length === 0) {
+                historyList.innerHTML = '<div class="history-item">今天还没有记录</div>';
+                return;
+            }
+
+            historyList.innerHTML = sessions.map((session, index) => {
+                const phaseSummary = session.phases.map(p => {
+                    var icon = PHASES[p.phase] ? PHASES[p.phase].icon : '🔹';
+                    var name = PHASES[p.phase] ? PHASES[p.phase].name : p.phase;
+                    return icon + ' ' + (p.outputTypeName || name) + ': ' + p.output.substring(0, 30) + (p.output.length > 30 ? '...' : '');
+                }).join('<br>');
+
+                const ideaSummary = session.ideas.length > 0 
+                    ? `<br><strong>💭 延后想法 (${session.ideas.length}个):</strong> ${session.ideas.map(i => i.text).join('；').substring(0, 60)}...`
+                    : '';
+
+                return `
+                    <div class="history-item">
+                        <div class="history-time">#${index + 1} ${new Date(session.startTime).toLocaleTimeString('zh-CN')}</div>
+                        <div><strong>任务：</strong>${session.taskName || '未命名'}</div>
+                        <div>${phaseSummary}</div>
+                        ${ideaSummary}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ============ 导出 ICS ============
+        function exportICS() {
+            const key = 'pomodoro_' + new Date().toISOString().split('T')[0];
+            const sessions = JSON.parse(localStorage.getItem(key) || '[]');
+
+            if (sessions.length === 0) {
+                alert('今天还没有记录，先完成一轮再导出');
+                return;
+            }
+
+            const latestSession = sessions[sessions.length - 1];
+            const startDate = new Date(latestSession.startTime || new Date());
+            // 动态计算总时长
+            var profile = getActiveProfile();
+            var r = profile.rounds || DEFAULT_ROUNDS;
+            var totalMs = (profile.split + profile.exec * r + profile.review * r) * 60 * 1000;
+            const endDate = new Date(startDate.getTime() + totalMs);
+
+            const formatDate = (date) => {
+                return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+            };
+
+            const outputs = latestSession.phases.map(p => {
+                var name = PHASES[p.phase] ? PHASES[p.phase].name : p.phase;
+                return name + ': [' + (p.outputTypeName || '') + '] ' + p.output;
+            }).join('\\n\\n');
+
+            const ideas = latestSession.ideas.length > 0 
+                ? '\\n\\n延后想法：\\n' + latestSession.ideas.map(i => `- ${i.text}`).join('\\n')
+                : '';
+
+            const icsContent = `BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Decision Pomodoro//CN
+BEGIN:VEVENT
+UID:${Date.now()}@decision-pomodoro
+DTSTAMP:${formatDate(new Date())}
+DTSTART:${formatDate(startDate)}
+DTEND:${formatDate(endDate)}
+SUMMARY:🍅 决策番茄钟 - ${latestSession.taskName || '专注 session'}
+DESCRIPTION:${outputs.replace(/\n/g, '\\n')}${ideas.replace(/\n/g, '\\n')}
+END:VEVENT
+END:VCALENDAR`;
+
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `decision-pomodoro-${new Date().toISOString().split('T')[0]}.ics`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            showStatus('已导出 .ics 文件，拖入 Google Calendar 即可导入', 'success');
+        }
+
+        // ============ 导出 Markdown ============
+        function exportMarkdown() {
+            const key = 'pomodoro_' + new Date().toISOString().split('T')[0];
+            const sessions = JSON.parse(localStorage.getItem(key) || '[]');
+
+            if (sessions.length === 0) {
+                alert('今天还没有记录，先完成一轮再导出');
+                return;
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            let md = '# 🍅 番茄钟记录 - ' + today + '\n\n';
+            md += '> 自动生成于 ' + new Date().toLocaleString('zh-CN') + '\n\n';
+            md += '---\n\n';
+
+            sessions.forEach((session, index) => {
+                const startTime = session.startTime ? new Date(session.startTime) : null;
+                const startTimeStr = startTime ? startTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+
+                // 结束时间取最后一个阶段的完成时间
+                const lastPhase = session.phases.length > 0 ? session.phases[session.phases.length - 1] : null;
+                const endTime = lastPhase && lastPhase.completedAt ? new Date(lastPhase.completedAt) : null;
+                const endTimeStr = endTime ? endTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '--:--';
+
+                md += '## 轮次 ' + (index + 1) + ' - ' + startTimeStr + ' ~ ' + endTimeStr + '\n\n';
+                md += '**任务：** ' + (session.taskName || '未命名任务') + '\n\n';
+
+                // 阶段详情表格
+                if (session.phases.length > 0) {
+                    md += '| 阶段 | 类型 | 产出 |\n';
+                    md += '|------|------|------|\n';
+                    session.phases.forEach(p => {
+                        const icon = PHASES[p.phase] ? PHASES[p.phase].icon : '🔹';
+                        const phaseName = PHASES[p.phase] ? PHASES[p.phase].name : p.phase;
+                        const typeName = p.outputTypeName || p.outputType || '未分类';
+                        const output = (p.output || '').replace(/\n/g, ' ').replace(/\|/g, '\\|') || '（无产出）';
+                        md += '| ' + icon + ' ' + phaseName + ' | ' + typeName + ' | ' + output + ' |\n';
+                    });
+                    md += '\n';
+                }
+
+                // 复盘笔记（从 review 阶段提取）
+                const reviews = session.phases.filter(p => p.phase.startsWith('review'));
+                if (reviews.length > 0) {
+                    md += '**📝 复盘笔记：**\n\n';
+                    reviews.forEach(r => {
+                        const reviewName = PHASES[r.phase] ? PHASES[r.phase].name : r.phase;
+                        const output = r.output || '（无笔记）';
+                        md += '- **' + reviewName + '：** ' + output.replace(/\n/g, ' ') + '\n';
+                    });
+                    md += '\n';
+                }
+
+                // 完成情况
+                const isCompleted = session.phases.length >= PHASE_ORDER.length;
+                const review1 = session.phases.find(p => p.phase === 'review1');
+                const review2 = session.phases.find(p => p.phase === 'review2');
+                let completionStatus = '未完成';
+                if (isCompleted) {
+                    if (review2 && review2.output) {
+                        const lowerOutput = review2.output.toLowerCase();
+                        if (lowerOutput.includes('达标') || lowerOutput.includes('完成') || lowerOutput.includes('yes')) {
+                            completionStatus = '✅ 达标完成';
+                        } else {
+                            completionStatus = '⚠️ 已完成但未完全达标';
+                        }
+                    } else {
+                        completionStatus = '✅ 已完整执行';
+                    }
+                } else if (session.phases.length > 0) {
+                    completionStatus = '⏸️ 进行中（' + session.phases.length + '/' + PHASE_ORDER.length + ' 阶段）';
+                }
+                md += '**完成情况：** ' + completionStatus + '\n\n';
+
+                // 延后想法
+                if (session.ideas && session.ideas.length > 0) {
+                    md += '**💭 延后想法：**\n\n';
+                    session.ideas.forEach(idea => {
+                        md += '- [' + (idea.capturedAt || '--:--') + '] ' + idea.text + '\n';
+                    });
+                    md += '\n';
+                }
+
+                md += '---\n\n';
+            });
+
+            md += '\n*由决策番茄钟自动生成*\n';
+
+            // 显示到文本框
+            markdownOutput.value = md;
+
+            // 尝试自动复制到剪贴板
+            const copyToClipboard = async () => {
+                try {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(md);
+                        return true;
+                    }
+                    // 降级方案
+                    const textarea = document.createElement('textarea');
+                    textarea.value = md;
+                    textarea.style.position = 'fixed';
+                    textarea.style.left = '-9999px';
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    const success = document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    return success;
+                } catch (err) {
+                    return false;
+                }
+            };
+
+            copyToClipboard().then(success => {
+                if (success) {
+                    markdownCopyStatus.innerHTML = '✅ <strong>已自动复制到剪贴板！</strong>你也可以手动复制下方内容：';
+                    showStatus('Markdown 已复制到剪贴板', 'success');
+                } else {
+                    markdownCopyStatus.innerHTML = '⚠️ <strong>浏览器限制无法自动复制</strong>，请手动全选下方内容后复制：';
+                    showStatus('请手动复制 Markdown 内容', 'warning');
+                    // 自动选中文本
+                    setTimeout(() => {
+                        markdownOutput.select();
+                        markdownOutput.setSelectionRange(0, 999999);
+                    }, 100);
+                }
+                showModal('markdownModal');
+            });
+        }
+
+        // 启动
+        init();
+    </script>
+</body>
+</html>
