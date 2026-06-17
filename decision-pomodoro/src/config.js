@@ -1,4 +1,4 @@
-export const DEFAULT_ROUNDS = 2;
+export const DEFAULT_ROUNDS = 1;
 
 export function buildPhaseOrder(rounds) {
     if (rounds === 1) return ['split', 'exec1', 'review1'];
@@ -34,5 +34,5 @@ export function getActiveProfileName() {
 export function getActiveProfile() {
     const name = getActiveProfileName();
     const profiles = loadProfiles();
-    return profiles.find(p => p.name === name) || { name: '经典', split: 5, exec: 25, review: 5, rounds: 2 };
+    return profiles.find(p => p.name === name) || { name: '经典', split: 5, exec: 25, review: 5, rounds: 1 };
 }

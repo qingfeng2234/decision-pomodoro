@@ -82,14 +82,17 @@
                             <div class="task-check-list" data-checklist="exec1"></div>
 
                             <label class="capsule-label" style="margin-top:10px;">本轮最小产物（必填）</label>
-                            <div class="output-type-group" data-output-types="exec1">
-                                <button type="button" class="output-type-btn" data-value="conclusion">🎯 主结论</button>
-                                <button type="button" class="output-type-btn" data-value="concept">💡 概念卡</button>
-                                <button type="button" class="output-type-btn" data-value="evidence">📊 证据表</button>
-                                <button type="button" class="output-type-btn" data-value="snippet">📝 文段/代码</button>
-                            </div>
                             <textarea class="capsule-input" data-output="exec1"
                                       placeholder="例如：核心结论是 XXX，因为 YYY..."></textarea>
+                            <details class="output-type-details">
+                                <summary>📐 产出形式 · <span data-output-type-label="exec1">主结论</span></summary>
+                                <div class="output-type-group" data-output-types="exec1">
+                                    <button type="button" class="output-type-btn" data-value="conclusion">🎯 主结论</button>
+                                    <button type="button" class="output-type-btn" data-value="concept">💡 概念卡</button>
+                                    <button type="button" class="output-type-btn" data-value="evidence">📊 证据表</button>
+                                    <button type="button" class="output-type-btn" data-value="snippet">📝 文段/代码</button>
+                                </div>
+                            </details>
 
                             <details class="round-stuck">
                                 <summary>卡住记录（可选）</summary>
@@ -100,21 +103,24 @@
                     </div>
 
                     <!-- R2 -->
-                    <div class="exec-round locked" data-round="2" id="execRound2">
+                    <div class="exec-round locked hidden" data-round="2" id="execRound2">
                         <div class="round-head">▸ 轮次 2 <small>（待解锁）</small></div>
                         <div class="round-body">
                             <label class="capsule-label">勾选完成的任务</label>
                             <div class="task-check-list" data-checklist="exec2"></div>
 
                             <label class="capsule-label" style="margin-top:10px;">本轮最小产物（必填）</label>
-                            <div class="output-type-group" data-output-types="exec2">
-                                <button type="button" class="output-type-btn" data-value="conclusion">🎯 主结论</button>
-                                <button type="button" class="output-type-btn" data-value="concept">💡 概念卡</button>
-                                <button type="button" class="output-type-btn" data-value="evidence">📊 证据表</button>
-                                <button type="button" class="output-type-btn" data-value="snippet">📝 文段/代码</button>
-                            </div>
                             <textarea class="capsule-input" data-output="exec2"
                                       placeholder="继续深入或调整方向..."></textarea>
+                            <details class="output-type-details">
+                                <summary>📐 产出形式 · <span data-output-type-label="exec2">主结论</span></summary>
+                                <div class="output-type-group" data-output-types="exec2">
+                                    <button type="button" class="output-type-btn" data-value="conclusion">🎯 主结论</button>
+                                    <button type="button" class="output-type-btn" data-value="concept">💡 概念卡</button>
+                                    <button type="button" class="output-type-btn" data-value="evidence">📊 证据表</button>
+                                    <button type="button" class="output-type-btn" data-value="snippet">📝 文段/代码</button>
+                                </div>
+                            </details>
 
                             <details class="round-stuck">
                                 <summary>卡住记录（可选）</summary>
@@ -132,6 +138,7 @@
                         </div>
                     </div>
                 </div>
+                <button type="button" class="round-toggle-btn" id="btnToggleRound2">+ 添加轮次 2</button>
             </section>
 
             <!-- 🔍 复盘卡（R1 + R2） -->
@@ -164,7 +171,7 @@
                     </div>
 
                     <!-- R2 -->
-                    <div class="review-round locked" data-round="2" id="reviewRound2">
+                    <div class="review-round locked hidden" data-round="2" id="reviewRound2">
                         <div class="round-head">▸ 轮次 2 <small>（待解锁）</small></div>
                         <div class="round-body">
                             <label class="capsule-label">这一轮完成了什么</label>

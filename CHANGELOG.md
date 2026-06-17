@@ -62,6 +62,32 @@
 
 ---
 
+## 2026-06-17：v3.1 胶囊卡瘦身 + R2 按需添加
+
+### 根因诊断
+v3.0 体验后发现整页向下拉得太长。问题是结构性的：执行卡 / 复盘卡默认渲染 R1+R2 两段，纵向高度 ≈ 拆分卡的 2 倍；三列因 grid stretch 被拉到等高，拆分阶段时 R2 完全是"未来的事"，纯视觉负担。降字号/padding 治标不治本。
+
+### 关键变化
+- **默认 1 轮模式**：`DEFAULT_ROUNDS` 由 2 → 1；默认"经典" profile rounds 由 2 → 1
+- **R2 按需添加**：执行卡末尾出现 `+ 添加轮次 2` 按钮 → 一键追加 R2（重建 `PHASE_ORDER` / `PHASES` / phase-indicator / subtitle）；已添加但未进入时变 `− 移除轮次 2`；已进入 R2 后置灰显示 `✓ 已启用 2 轮`
+- **`min-height: 380px` → `min-height: 0`**：三列自适应内容，不再硬撑空白
+- **产出形式按钮组折叠**：用 `<details>` 包住 4 个类型按钮（默认折叠，summary 显示"📐 产出形式 · 当前: 主结论"），textarea 仍常驻；默认形态减少 ~50px 高度
+- **R2 toggle 按钮放在 `.capsule-body` 外**：避开 locked 状态的 `pointer-events: none`，确保拆分阶段也能点
+
+### 文件变化
+- `decision-pomodoro/src/config.js`：DEFAULT_ROUNDS / 默认 profile rounds
+- `decision-pomodoro/src/cards.js`：`renderExecCard` 改按 `currentRounds` 循环；新增 `addRound2 / removeRound2 / canRemoveRound2 / renderRoundToggle / updateOutputTypeLabel`
+- `decision-pomodoro/src/main.js`：`#btnToggleRound2` 事件绑定；默认 profile rounds 改 1
+- `decision-pomodoro/src/settings.js`：`applyAndClose` 后调 `renderAllCards / renderRoundToggle`
+- `decision-pomodoro/index.html`：执行卡 4 类型按钮包进 `<details>`；R2 默认 hidden；R2 toggle 按钮放卡底（capsule-body 外）
+- `decision-pomodoro/src/style.css`：min-height 取消；`.exec-round + .exec-round` 兄弟选择器替代 margin-bottom；新增 `.round-toggle-btn`、`.output-type-details summary` 样式
+
+### 验证
+- `vite build` 通过（16 modules transformed，0 错误，1 个动态 import warning 不影响运行）
+- 浏览器手动验证待用户使用
+
+---
+
 ## 2026-06-17：v3.0 三胶囊卡架构
 
 把原本"同一个 textarea 三阶段共用"的设计拆成 **3 张胶囊卡横向 grid**（拆分 / 执行 / 复盘），解决"切换阶段时上一阶段内容留不留"的死结——已写完的内容不消失，只是从"可编辑"变成"已锁定参考卡"，下一阶段在新卡里写，上一阶段的卡常驻可见。

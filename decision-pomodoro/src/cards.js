@@ -6,7 +6,8 @@
 //   review: { rounds: { 1: {finding, mistake, nextStep}, 2: {...} } }
 // }
 
-import { currentSession, updateCurrentSession, PHASE_ORDER, PHASES, currentPhaseIndex, currentRounds } from './state.js';
+import { currentSession, updateCurrentSession, PHASE_ORDER, PHASES, currentPhaseIndex, currentRounds, updateCurrentRounds, updatePhaseOrder, updatePhases, buildPhases } from './state.js';
+import { buildPhaseOrder, getActiveProfile, DEFAULT_ROUNDS } from './config.js';
 
 export const SESSION_VERSION = 3;
 
@@ -105,12 +106,13 @@ export function syncSplitBigProblem() {
 
 export function renderExecCard() {
     ensureCardsInit();
-    [1, 2].forEach(r => {
+    for (let r = 1; r <= currentRounds; r++) {
         renderExecRound(r);
-    });
-    // 1 轮模式隐藏 R2
+    }
+    // 根据 currentRounds 显隐 R2
     document.getElementById('execRound2').classList.toggle('hidden', currentRounds < 2);
     document.getElementById('reviewRound2').classList.toggle('hidden', currentRounds < 2);
+    renderRoundToggle();
 }
 
 function renderExecRound(r) {
@@ -146,6 +148,7 @@ function renderExecRound(r) {
     grp.querySelectorAll('.output-type-btn').forEach(btn => {
         btn.classList.toggle('active', btn.dataset.value === cardR.outputType);
     });
+    updateOutputTypeLabel(r, cardR.outputType);
     grp.onclick = e => {
         const btn = e.target.closest('.output-type-btn');
         if (!btn) return;
@@ -153,6 +156,7 @@ function renderExecRound(r) {
         session.cards.exec.rounds[r].outputType = btn.dataset.value;
         updateCurrentSession(session);
         grp.querySelectorAll('.output-type-btn').forEach(b => b.classList.toggle('active', b === btn));
+        updateOutputTypeLabel(r, btn.dataset.value);
     };
 
     // output textarea
@@ -345,4 +349,74 @@ export function renderAllCards() {
     renderExecCard();
     renderReviewCard();
     updateCardActivation();
+}
+
+// ---------- R2 按需添加/移除 ----------
+
+const TYPE_LABELS = { conclusion: '主结论', concept: '概念卡', evidence: '证据表', snippet: '文段/代码' };
+
+function updateOutputTypeLabel(r, value) {
+    const label = document.querySelector(`[data-output-type-label="exec${r}"]`);
+    if (label) label.textContent = TYPE_LABELS[value] || '主结论';
+}
+
+export function canRemoveRound2() {
+    const idx = PHASE_ORDER.indexOf('exec2');
+    return idx >= 0 && currentPhaseIndex < idx;
+}
+
+export function addRound2() {
+    if (currentRounds >= 2) return;
+    const profile = getActiveProfile();
+    updateCurrentRounds(2);
+    updatePhaseOrder(buildPhaseOrder(2));
+    updatePhases(buildPhases({ split: profile.split, exec: profile.exec, review: profile.review, rounds: 2 }));
+    renderAllCards();
+    refreshPhaseHeader();
+}
+
+export function removeRound2() {
+    if (currentRounds < 2 || !canRemoveRound2()) return;
+    const session = { ...currentSession };
+    session.cards.exec.rounds[2] = { checks: {}, outputType: 'conclusion', output: '', stuck: '' };
+    session.cards.review.rounds[2] = { finding: '', mistake: '', nextStep: '' };
+    updateCurrentSession(session);
+
+    const profile = getActiveProfile();
+    updateCurrentRounds(1);
+    updatePhaseOrder(buildPhaseOrder(1));
+    updatePhases(buildPhases({ split: profile.split, exec: profile.exec, review: profile.review, rounds: 1 }));
+    renderAllCards();
+    refreshPhaseHeader();
+}
+
+function refreshPhaseHeader() {
+    // 动态 import 避免循环依赖
+    import('./ui.js').then(ui => {
+        ui.renderPhaseIndicator();
+        const profile = getActiveProfile();
+        ui.updateSubtitle(profile.split, profile.exec, profile.review, currentRounds);
+        ui.updatePhaseUI();
+    });
+}
+
+export function renderRoundToggle() {
+    const btn = document.getElementById('btnToggleRound2');
+    if (!btn) return;
+    if (currentRounds < 2) {
+        btn.textContent = '+ 添加轮次 2';
+        btn.classList.remove('remove-mode');
+        btn.disabled = false;
+        btn.title = '在 1 轮模式下追加第 2 轮（执行 + 复盘）';
+    } else if (canRemoveRound2()) {
+        btn.textContent = '− 移除轮次 2';
+        btn.classList.add('remove-mode');
+        btn.disabled = false;
+        btn.title = '尚未进入第 2 轮，可以撤销';
+    } else {
+        btn.textContent = '✓ 已启用 2 轮';
+        btn.classList.remove('remove-mode');
+        btn.disabled = true;
+        btn.title = '已经在执行第 2 轮，无法撤销';
+    }
 }

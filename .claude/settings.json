@@ -9,7 +9,8 @@
       "PowerShell(gh*)",
       "PowerShell(npm*)",
       "PowerShell(npx*)",
-      "PowerShell(cd *)"
+      "PowerShell(cd *)",
+      "PowerShell(& \"decision-pomodoro*)"
     ]
   }
 }

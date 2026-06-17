@@ -10,6 +10,7 @@ import {
 } from './state.js';
 import { buildPhaseOrder, PROFILES_KEY, ACTIVE_PROFILE_KEY } from './config.js';
 import { renderPhaseIndicator, updateSubtitle, updateTimerDisplay, updateProgress, updatePhaseUI, showStatus, showModal, closeModal } from './ui.js';
+import { renderAllCards, renderRoundToggle } from './cards.js';
 
 import { isRunning } from './state.js';
 
@@ -155,6 +156,8 @@ export function applyAndClose() {
     updateTimerDisplay();
     updateProgress();
     updatePhaseUI();
+    renderAllCards();
+    renderRoundToggle();
 
     closeModal('settingsModal');
     var r = tempRounds;

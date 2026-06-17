@@ -604,7 +604,7 @@ h1 {
     padding: 16px;
     display: flex;
     flex-direction: column;
-    min-height: 380px;
+    min-height: 0;
     transition: opacity 0.2s, border-color 0.2s;
 }
 
@@ -802,8 +802,12 @@ h1 {
     border: 1px solid #e0e6ef;
     border-radius: 8px;
     background: white;
-    margin-bottom: 8px;
     overflow: hidden;
+}
+
+.exec-round + .exec-round,
+.review-round + .review-round {
+    margin-top: 8px;
 }
 
 .exec-round.locked, .review-round.locked {
@@ -882,3 +886,70 @@ h1 {
     font-size: 12px;
     padding: 6px 10px;
 }
+
+/* R2 按需切换按钮 */
+.round-toggle-btn {
+    width: 100%;
+    background: transparent;
+    border: 1.5px dashed #c8d6e5;
+    border-radius: 7px;
+    padding: 6px 8px;
+    margin-top: 8px;
+    cursor: pointer;
+    color: #667eea;
+    font-size: 12px;
+    transition: all 0.15s;
+}
+
+.round-toggle-btn:hover:not(:disabled) {
+    background: #f0f4ff;
+    border-color: #667eea;
+}
+
+.round-toggle-btn.remove-mode {
+    color: #d9534f;
+    border-color: #e8b4b4;
+}
+
+.round-toggle-btn.remove-mode:hover:not(:disabled) {
+    background: #fdf2f2;
+    border-color: #d9534f;
+}
+
+.round-toggle-btn:disabled {
+    color: #94a8be;
+    border-color: #d4dbe6;
+    cursor: not-allowed;
+    background: #f8f9fa;
+}
+
+/* 产出形式折叠区 */
+.output-type-details {
+    margin-top: 6px;
+}
+
+.output-type-details > summary {
+    list-style: none;
+    cursor: pointer;
+    font-size: 11px;
+    color: #5c7a9a;
+    padding: 4px 8px;
+    background: #f0f4ff;
+    border-radius: 6px;
+    user-select: none;
+    transition: background 0.15s;
+}
+
+.output-type-details > summary::-webkit-details-marker { display: none; }
+
+.output-type-details > summary:hover { background: #e0eaff; }
+
+.output-type-details[open] > summary {
+    margin-bottom: 6px;
+}
+
+.output-type-details [data-output-type-label] {
+    color: #667eea;
+    font-weight: 600;
+}
+

@@ -15,7 +15,7 @@ import { exportICS, exportMarkdown } from './export.js';
 import { renderSettings, loadProfile, saveAsNewProfile, updateCurrentProfile, deleteProfile, applyAndClose, updateSettingsPreview, setRounds } from './settings.js';
 import { startTimer, pauseTimer, continueTimer, captureDistraction, completePhase, endSession, handleStuckOption, captureIdea } from './timer.js';
 import { toggleAIConfigFields, testAIConnection, saveAIConfig } from './ai.js';
-import { ensureCardsInit, renderAllCards, addTask, syncSplitBigProblem } from './cards.js';
+import { ensureCardsInit, renderAllCards, addTask, syncSplitBigProblem, addRound2, removeRound2, canRemoveRound2, renderRoundToggle } from './cards.js';
 
 function init() {
     const profile = getActiveProfile();
@@ -46,7 +46,7 @@ function init() {
     ensureCardsInit();
 
     if (loadProfiles().length === 0) {
-        saveProfiles([{ name: '经典', split: 5, exec: 25, review: 5, rounds: 2 }]);
+        saveProfiles([{ name: '经典', split: 5, exec: 25, review: 5, rounds: 1 }]);
         localStorage.setItem(ACTIVE_PROFILE_KEY, '经典');
     }
 
@@ -103,6 +103,15 @@ function setupEventListeners() {
     // 拆分卡：大问题输入 + 添加任务
     document.getElementById('splitBigProblem').addEventListener('input', syncSplitBigProblem);
     document.getElementById('btnAddTask').addEventListener('click', addTask);
+
+    // 执行卡：R2 按需添加/移除
+    document.getElementById('btnToggleRound2').addEventListener('click', () => {
+        if (currentRounds < 2) {
+            addRound2();
+        } else if (canRemoveRound2()) {
+            removeRound2();
+        }
+    });
 
     // 三张卡内的 AI 按钮
     document.querySelectorAll('[data-ai]').forEach(btn => {
