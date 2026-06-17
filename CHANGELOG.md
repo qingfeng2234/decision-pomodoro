@@ -62,6 +62,24 @@
 
 ---
 
+## 2026-06-17：v3.2 AI 测试连接错误提示改进
+
+### 问题
+配置 DeepSeek 时 endpoint 漏写 `/v1/chat/completions`，服务器返回空响应，`testAIConnection` 强行 `r.json()` 失败，提示是迷惑的 `Failed to execute 'json' on 'Response': Unexpected end of JSON input`，看不出真实原因。
+
+### 变化
+- `ai.js / testAIConnection` 改写为 async/await：
+  - 先 `await r.text()` 拿原文，避免 body 二次读取
+  - 非 2xx → 显示 `❌ HTTP {status}：{正文前 200 字}`
+  - 2xx 但非 JSON → 显示 `❌ 响应不是 JSON：{前 100 字}`
+  - 网络层异常 → 显示 `❌ 网络错误：{message}`
+- 用内嵌 `setResult(level, text)` 替代重复的 DOM 操作
+
+### 文件变化
+- `decision-pomodoro/src/ai.js`
+
+---
+
 ## 2026-06-17：v3.1 胶囊卡瘦身 + R2 按需添加
 
 ### 根因诊断

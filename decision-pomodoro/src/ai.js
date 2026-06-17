@@ -7,40 +7,53 @@ export function toggleAIConfigFields() {
     fields.style.display = enabled ? 'block' : 'none';
 }
 
-export function testAIConnection() {
+export async function testAIConnection() {
     var endpoint = document.getElementById('aiEndpoint').value.trim();
     var apiKey = document.getElementById('aiApiKey').value.trim();
     var model = document.getElementById('aiModel').value.trim();
+    var resultEl = document.getElementById('aiTestResult');
+
+    function setResult(level, text) {
+        resultEl.style.display = 'block';
+        resultEl.className = 'status-message ' + level;
+        resultEl.textContent = text;
+    }
 
     if (!endpoint || !apiKey || !model) {
-        document.getElementById('aiTestResult').style.display = 'block';
-        document.getElementById('aiTestResult').className = 'status-message warning';
-        document.getElementById('aiTestResult').textContent = '请填写完整信息';
+        setResult('warning', '请填写完整信息');
         return;
     }
 
-    document.getElementById('aiTestResult').style.display = 'block';
-    document.getElementById('aiTestResult').className = 'status-message info';
-    document.getElementById('aiTestResult').textContent = '⏳ 测试中...';
+    setResult('info', '⏳ 测试中...');
 
-    fetch(endpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
-        body: JSON.stringify({
-            model: model,
-            messages: [{ role: 'user', content: '回复"连接成功"即可' }],
-            max_tokens: 20
-        })
-    })
-    .then(r => r.json())
-    .then(() => {
-        document.getElementById('aiTestResult').className = 'status-message success';
-        document.getElementById('aiTestResult').textContent = '✅ 连接成功！';
-    })
-    .catch(err => {
-        document.getElementById('aiTestResult').className = 'status-message danger';
-        document.getElementById('aiTestResult').textContent = '❌ 连接失败：' + err.message;
-    });
+    try {
+        const r = await fetch(endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
+            body: JSON.stringify({
+                model: model,
+                messages: [{ role: 'user', content: '回复"连接成功"即可' }],
+                max_tokens: 20
+            })
+        });
+
+        const text = await r.text();
+
+        if (!r.ok) {
+            const body = text.slice(0, 200) || '(空响应)';
+            setResult('danger', '❌ HTTP ' + r.status + '：' + body);
+            return;
+        }
+
+        try {
+            JSON.parse(text);
+            setResult('success', '✅ 连接成功！');
+        } catch {
+            setResult('danger', '❌ 响应不是 JSON：' + (text.slice(0, 100) || '(空响应)'));
+        }
+    } catch (err) {
+        setResult('danger', '❌ 网络错误：' + err.message);
+    }
 }
 
 export function saveAIConfig() {
