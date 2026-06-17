@@ -62,6 +62,24 @@
 
 ---
 
+## 2026-06-17：v3.3 想法拦截器添加清空按钮
+
+### 问题
+`🛡️ 新想法拦截器` 列表随 session 推进只增不减，整页越来越冗余。
+
+### 变化
+- 拦截器 label 行加入 `🗑️` 图标按钮（黄色基调匹配 idea-capture）
+- `currentSession.ideas.length > 0` 时显示，为 0 时隐藏
+- 点击 → confirm 确认 → 调用新增的 `timer.js / clearIdeas()` 清空 + 持久化
+
+### 文件变化
+- `decision-pomodoro/index.html`：label 行加 `#btnClearIdeas`
+- `decision-pomodoro/src/timer.js`：新增 `clearIdeas()`；`renderIdeas()` 同步按钮 hidden 状态
+- `decision-pomodoro/src/main.js`：import `clearIdeas` + 绑定 click + confirm
+- `decision-pomodoro/src/style.css`：新增 `.idea-clear-btn` 紧凑黄色样式
+
+---
+
 ## 2026-06-17：v3.2 AI 测试连接错误提示改进
 
 ### 问题

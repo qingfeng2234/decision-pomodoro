@@ -923,6 +923,21 @@ h1 {
     background: #f8f9fa;
 }
 
+/* 想法拦截器清空按钮 */
+.idea-clear-btn {
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+    margin-left: auto;
+    border-color: #ffeaa7;
+    color: #856404;
+}
+
+.idea-clear-btn:hover {
+    background: #fff8e0;
+    border-color: #d4a017;
+}
+
 /* 产出形式折叠区 */
 .output-type-details {
     margin-top: 6px;

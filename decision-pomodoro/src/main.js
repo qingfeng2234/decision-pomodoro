@@ -13,7 +13,7 @@ import { renderPhaseIndicator, updateSubtitle, updateTimerDisplay, updateProgres
 import { loadTodayHistory, renderHistory } from './storage.js';
 import { exportICS, exportMarkdown } from './export.js';
 import { renderSettings, loadProfile, saveAsNewProfile, updateCurrentProfile, deleteProfile, applyAndClose, updateSettingsPreview, setRounds } from './settings.js';
-import { startTimer, pauseTimer, continueTimer, captureDistraction, completePhase, endSession, handleStuckOption, captureIdea } from './timer.js';
+import { startTimer, pauseTimer, continueTimer, captureDistraction, completePhase, endSession, handleStuckOption, captureIdea, clearIdeas } from './timer.js';
 import { toggleAIConfigFields, testAIConnection, saveAIConfig } from './ai.js';
 import { ensureCardsInit, renderAllCards, addTask, syncSplitBigProblem, addRound2, removeRound2, canRemoveRound2, renderRoundToggle } from './cards.js';
 
@@ -98,6 +98,12 @@ function setupEventListeners() {
             captureIdea(e.target.value.trim());
             e.target.value = '';
         }
+    });
+
+    document.getElementById('btnClearIdeas').addEventListener('click', () => {
+        var n = document.querySelectorAll('#ideaList .idea-item').length;
+        if (n === 0) return;
+        if (confirm('确认清空 ' + n + ' 条想法吗？')) clearIdeas();
     });
 
     // 拆分卡：大问题输入 + 添加任务

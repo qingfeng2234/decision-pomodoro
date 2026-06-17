@@ -243,13 +243,23 @@ export function captureIdea(idea) {
 }
 
 function renderIdeas() {
+    var btn = document.getElementById('btnClearIdeas');
     if (currentSession.ideas.length === 0) {
         document.getElementById('ideaList').innerHTML = '';
+        if (btn) btn.classList.add('hidden');
         return;
     }
     document.getElementById('ideaList').innerHTML = currentSession.ideas.map((idea, index) =>
         `<div class="idea-item">${index + 1}. [${idea.capturedAt}] ${idea.text}</div>`
     ).join('');
+    if (btn) btn.classList.remove('hidden');
+}
+
+export function clearIdeas() {
+    var session = { ...currentSession };
+    session.ideas = [];
+    updateCurrentSession(session);
+    renderIdeas();
 }
 
 function sendNotification(title, body) {
