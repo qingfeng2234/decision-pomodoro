@@ -37,43 +37,165 @@
             </div>
         </div>
 
-        <div class="output-section">
-            <div class="output-label">
-                <span id="outputLabelIcon">📝</span>
-                <span id="outputLabelText">本轮产出（必须填写）</span>
-            </div>
-            <div class="output-type-group" id="outputTypeGroup">
-                <button class="output-type-btn" data-value="conclusion" title="一句话核心结论">🎯 主结论</button>
-                <button class="output-type-btn" data-value="concept" title="一个新概念的定义和例子">💡 概念卡</button>
-                <button class="output-type-btn" data-value="evidence" title="支持/反对的关键证据">📊 证据表</button>
-                <button class="output-type-btn" data-value="action" title="5分钟内可启动的下一步">⚡ 最小行动</button>
-            </div>
-            <textarea
-                class="output-input"
-                id="outputInput"
-                placeholder="例如：今天要完成PHE降解实验的样品前处理，具体动作是称取3组沉积物样品各5g"
-            ></textarea>
-            <div class="output-hint" id="outputHint">
-                <span class="output-required">*</span>
-                <span id="hintText">拆分阶段：把大问题变成"今天能完成的、可判断标准"的小任务</span>
-            </div>
+        <!-- ⬇️ v3.0：三张胶囊卡（横向 grid，移动端降级为纵向） -->
+        <div class="capsule-grid" id="capsuleGrid">
+            <!-- 🧩 拆分卡 -->
+            <section class="capsule-card" id="cardSplit" data-phase="split">
+                <header class="capsule-head">
+                    <span class="capsule-icon">🧩</span>
+                    <span class="capsule-title">拆分</span>
+                    <span class="capsule-status" id="cardSplitStatus">当前</span>
+                </header>
+                <div class="capsule-body">
+                    <label class="capsule-label">今日大问题（一句话）</label>
+                    <textarea class="capsule-input" id="splitBigProblem"
+                              placeholder="例如：今天要完成 PHE 降解实验的样品前处理"></textarea>
 
-            <div id="aiAssistArea" class="hidden" style="margin-top: 10px;">
-                <button class="btn btn-secondary" id="btnAISuggest" style="width: 100%;">
-                    🤖 AI 建议
-                </button>
-                <div id="aiLoading" class="hidden" style="text-align: center; padding: 8px; font-size: 13px; color: #667eea;">
-                    ⏳ AI 思考中...
-                </div>
-                <div id="aiSuggestion" class="hidden">
-                    <div id="aiSuggestionText" class="ai-suggestion-box"></div>
-                    <div class="ai-actions">
-                        <button class="btn btn-primary" id="btnApplyAI" data-action="apply-ai-suggestion">采用建议</button>
-                        <button class="btn btn-secondary" id="btnDismissAI" data-action="dismiss-ai-suggestion">仅参考</button>
+                    <label class="capsule-label" style="margin-top:10px;">拆成 1–3 个小任务（带完成判断标准）</label>
+                    <div class="task-list" id="splitTasksList"></div>
+                    <button type="button" class="task-add-btn" id="btnAddTask">+ 添加任务</button>
+
+                    <button type="button" class="capsule-ai-btn" data-ai="split">🤖 让 AI 帮我拆任务</button>
+                    <div class="capsule-ai-result hidden" data-ai-result="split">
+                        <div class="ai-suggestion-box" data-ai-text="split"></div>
+                        <div class="ai-actions">
+                            <button type="button" class="btn btn-primary" data-ai-apply="split">采用</button>
+                            <button type="button" class="btn btn-secondary" data-ai-dismiss="split">关闭</button>
+                        </div>
                     </div>
                 </div>
-            </div>
+            </section>
+
+            <!-- ⚡ 执行卡（R1 + R2） -->
+            <section class="capsule-card locked" id="cardExec" data-phase="exec">
+                <header class="capsule-head">
+                    <span class="capsule-icon">⚡</span>
+                    <span class="capsule-title">执行</span>
+                    <span class="capsule-status" id="cardExecStatus">待解锁</span>
+                </header>
+                <div class="capsule-body">
+                    <!-- R1 -->
+                    <div class="exec-round" data-round="1" id="execRound1">
+                        <div class="round-head">▸ 轮次 1</div>
+                        <div class="round-body">
+                            <label class="capsule-label">勾选完成的任务</label>
+                            <div class="task-check-list" data-checklist="exec1"></div>
+
+                            <label class="capsule-label" style="margin-top:10px;">本轮最小产物（必填）</label>
+                            <div class="output-type-group" data-output-types="exec1">
+                                <button type="button" class="output-type-btn" data-value="conclusion">🎯 主结论</button>
+                                <button type="button" class="output-type-btn" data-value="concept">💡 概念卡</button>
+                                <button type="button" class="output-type-btn" data-value="evidence">📊 证据表</button>
+                                <button type="button" class="output-type-btn" data-value="snippet">📝 文段/代码</button>
+                            </div>
+                            <textarea class="capsule-input" data-output="exec1"
+                                      placeholder="例如：核心结论是 XXX，因为 YYY..."></textarea>
+
+                            <details class="round-stuck">
+                                <summary>卡住记录（可选）</summary>
+                                <textarea class="capsule-input small" data-stuck="exec1"
+                                          placeholder="哪里卡了？怎么绕过的？"></textarea>
+                            </details>
+                        </div>
+                    </div>
+
+                    <!-- R2 -->
+                    <div class="exec-round locked" data-round="2" id="execRound2">
+                        <div class="round-head">▸ 轮次 2 <small>（待解锁）</small></div>
+                        <div class="round-body">
+                            <label class="capsule-label">勾选完成的任务</label>
+                            <div class="task-check-list" data-checklist="exec2"></div>
+
+                            <label class="capsule-label" style="margin-top:10px;">本轮最小产物（必填）</label>
+                            <div class="output-type-group" data-output-types="exec2">
+                                <button type="button" class="output-type-btn" data-value="conclusion">🎯 主结论</button>
+                                <button type="button" class="output-type-btn" data-value="concept">💡 概念卡</button>
+                                <button type="button" class="output-type-btn" data-value="evidence">📊 证据表</button>
+                                <button type="button" class="output-type-btn" data-value="snippet">📝 文段/代码</button>
+                            </div>
+                            <textarea class="capsule-input" data-output="exec2"
+                                      placeholder="继续深入或调整方向..."></textarea>
+
+                            <details class="round-stuck">
+                                <summary>卡住记录（可选）</summary>
+                                <textarea class="capsule-input small" data-stuck="exec2"></textarea>
+                            </details>
+                        </div>
+                    </div>
+
+                    <button type="button" class="capsule-ai-btn" data-ai="exec">🤖 让 AI 帮我聚焦/整理</button>
+                    <div class="capsule-ai-result hidden" data-ai-result="exec">
+                        <div class="ai-suggestion-box" data-ai-text="exec"></div>
+                        <div class="ai-actions">
+                            <button type="button" class="btn btn-primary" data-ai-apply="exec">采用</button>
+                            <button type="button" class="btn btn-secondary" data-ai-dismiss="exec">关闭</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 🔍 复盘卡（R1 + R2） -->
+            <section class="capsule-card locked" id="cardReview" data-phase="review">
+                <header class="capsule-head">
+                    <span class="capsule-icon">🔍</span>
+                    <span class="capsule-title">复盘</span>
+                    <span class="capsule-status" id="cardReviewStatus">待解锁</span>
+                </header>
+                <div class="capsule-body">
+                    <!-- R1 -->
+                    <div class="review-round" data-round="1" id="reviewRound1">
+                        <div class="round-head">▸ 轮次 1</div>
+                        <div class="round-body">
+                            <label class="capsule-label">这一轮完成了什么</label>
+                            <div class="task-check-list readonly" data-checklist="review1"></div>
+
+                            <label class="capsule-label" style="margin-top:10px;">一个发现</label>
+                            <input type="text" class="capsule-input single" data-review-field="finding1"
+                                   placeholder="一句话写下让你眼前一亮的事">
+
+                            <label class="capsule-label">一个失误</label>
+                            <input type="text" class="capsule-input single" data-review-field="mistake1"
+                                   placeholder="一句话写下下次想避免的事">
+
+                            <label class="capsule-label">下一个番茄钟要做什么</label>
+                            <input type="text" class="capsule-input single" data-review-field="nextStep1"
+                                   placeholder="一句话，可直接作为下轮的任务">
+                        </div>
+                    </div>
+
+                    <!-- R2 -->
+                    <div class="review-round locked" data-round="2" id="reviewRound2">
+                        <div class="round-head">▸ 轮次 2 <small>（待解锁）</small></div>
+                        <div class="round-body">
+                            <label class="capsule-label">这一轮完成了什么</label>
+                            <div class="task-check-list readonly" data-checklist="review2"></div>
+
+                            <label class="capsule-label" style="margin-top:10px;">一个发现</label>
+                            <input type="text" class="capsule-input single" data-review-field="finding2"
+                                   placeholder="一句话写下让你眼前一亮的事">
+
+                            <label class="capsule-label">一个失误</label>
+                            <input type="text" class="capsule-input single" data-review-field="mistake2"
+                                   placeholder="一句话写下下次想避免的事">
+
+                            <label class="capsule-label">明日/下轮起点</label>
+                            <input type="text" class="capsule-input single" data-review-field="nextStep2"
+                                   placeholder="一句话，记录主线下一步">
+                        </div>
+                    </div>
+
+                    <button type="button" class="capsule-ai-btn" data-ai="review">🤖 让 AI 帮我提炼经验</button>
+                    <div class="capsule-ai-result hidden" data-ai-result="review">
+                        <div class="ai-suggestion-box" data-ai-text="review"></div>
+                        <div class="ai-actions">
+                            <button type="button" class="btn btn-primary" data-ai-apply="review">采用</button>
+                            <button type="button" class="btn btn-secondary" data-ai-dismiss="review">关闭</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
         </div>
+        <!-- ⬆️ v3.0 胶囊卡区结束 -->
 
         <div class="idea-capture">
             <div class="idea-capture-label">

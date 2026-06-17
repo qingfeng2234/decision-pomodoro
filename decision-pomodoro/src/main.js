@@ -1,10 +1,10 @@
 import './style.css';
 
-import { getActiveProfile, getActiveProfileName, loadProfiles, saveProfiles, SOUND_PREF_KEY, VOLUME_PREF_KEY, PROFILES_KEY, ACTIVE_PROFILE_KEY, DEFAULT_ROUNDS } from './config.js';
+import { getActiveProfile, getActiveProfileName, loadProfiles, saveProfiles, SOUND_PREF_KEY, VOLUME_PREF_KEY, PROFILES_KEY, ACTIVE_PROFILE_KEY, DEFAULT_ROUNDS, AI_CONFIG_KEY } from './config.js';
 import {
-    PHASE_ORDER, PHASES, currentRounds, soundMuted, mokugyoVolume,
+    PHASE_ORDER, PHASES, currentPhaseIndex, currentRounds, soundMuted, mokugyoVolume,
     updatePhaseOrder, updatePhases, updateCurrentRounds, updateTimeRemaining,
-    updateTotalTime, updateCurrentPhaseIndex, updateCurrentSession,
+    updateTotalTime, updateCurrentPhaseIndex, updateCurrentSession, currentSession,
     updateSoundMuted, updateMokugyoVolume, buildPhases
 } from './state.js';
 import { buildPhaseOrder } from './config.js';
@@ -14,7 +14,8 @@ import { loadTodayHistory, renderHistory } from './storage.js';
 import { exportICS, exportMarkdown } from './export.js';
 import { renderSettings, loadProfile, saveAsNewProfile, updateCurrentProfile, deleteProfile, applyAndClose, updateSettingsPreview, setRounds } from './settings.js';
 import { startTimer, pauseTimer, continueTimer, captureDistraction, completePhase, endSession, handleStuckOption, captureIdea } from './timer.js';
-import { toggleAIConfigFields, testAIConnection, saveAIConfig, applyAISuggestion, dismissAISuggestion } from './ai.js';
+import { toggleAIConfigFields, testAIConnection, saveAIConfig } from './ai.js';
+import { ensureCardsInit, renderAllCards, addTask, syncSplitBigProblem } from './cards.js';
 
 function init() {
     const profile = getActiveProfile();
@@ -26,7 +27,6 @@ function init() {
     updateTimeRemaining(phases.split.minutes * 60);
     updateTotalTime(phases.split.minutes * 60);
 
-    // Sound state
     updateSoundMuted(localStorage.getItem(SOUND_PREF_KEY) === 'true');
     document.getElementById('btnSound').textContent = soundMuted ? '🔇' : '🔊';
 
@@ -34,22 +34,22 @@ function init() {
     updateMokugyoVolume(vol);
     document.getElementById('volumeSlider').value = vol;
 
-    // Init session
     updateCurrentSession({
         date: new Date().toISOString().split('T')[0],
         startTime: null,
         phases: [],
         ideas: [],
-        taskName: ''
+        taskName: '',
+        version: 3,
+        cards: null
     });
+    ensureCardsInit();
 
-    // Ensure default profile exists
     if (loadProfiles().length === 0) {
         saveProfiles([{ name: '经典', split: 5, exec: 25, review: 5, rounds: 2 }]);
         localStorage.setItem(ACTIVE_PROFILE_KEY, '经典');
     }
 
-    // 请求浏览器通知权限（阶段完成时弹桌面通知）
     if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
         Notification.requestPermission();
     }
@@ -59,6 +59,7 @@ function init() {
     updateSubtitle(profile.split, profile.exec, profile.review, profile.rounds || DEFAULT_ROUNDS);
     updateTimerDisplay();
     updateProgress();
+    renderAllCards();
     updatePhaseUI();
     setupEventListeners();
 }
@@ -76,9 +77,6 @@ function setupEventListeners() {
     document.getElementById('btnSettings').addEventListener('click', function() { if (!PHASE_ORDER.length) return; renderSettings(); });
     document.getElementById('btnSound').addEventListener('click', toggleSound);
     document.getElementById('btnAIConfig').addEventListener('click', openAIConfig);
-    document.getElementById('btnAISuggest').addEventListener('click', requestAISuggestion);
-    document.getElementById('btnApplyAI').addEventListener('click', applyAISuggestion);
-    document.getElementById('btnDismissAI').addEventListener('click', dismissAISuggestion);
     document.getElementById('btnSaveNewProfile').addEventListener('click', saveAsNewProfile);
     document.getElementById('btnUpdateProfile').addEventListener('click', updateCurrentProfile);
     document.getElementById('btnApplySettings').addEventListener('click', applyAndClose);
@@ -86,7 +84,6 @@ function setupEventListeners() {
     document.getElementById('btnSaveAI').addEventListener('click', saveAIConfig);
     document.getElementById('aiEnabled').addEventListener('change', toggleAIConfigFields);
 
-    // Input events
     document.getElementById('volumeSlider').addEventListener('input', function() {
         updateMokugyoVolume(parseInt(this.value));
         localStorage.setItem(VOLUME_PREF_KEY, this.value);
@@ -103,29 +100,26 @@ function setupEventListeners() {
         }
     });
 
-    document.getElementById('outputTypeGroup').addEventListener('click', (e) => {
-        var btn = e.target.closest('.output-type-btn');
-        if (btn) {
-            document.getElementById('outputTypeGroup').querySelectorAll('.output-type-btn').forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-            // placeholder update from ui.js setOutputType
-            var placeholders = {
-                conclusion: '例如：核心结论是 XXX，因为 YYY 证据表明...',
-                concept:    '例如：概念卡：「XX效应」— 当 A 条件满足时，B 会自动发生...',
-                evidence:   '例如：✅ 支持：实验数据表明... | ❌ 反对：但 XX 情况下不成立...',
-                action:     '例如：今天要完成PHE降解实验的样品前处理，具体动作是称取3组沉积物样品各5g'
-            };
-            document.getElementById('outputInput').placeholder = placeholders[btn.dataset.value] || placeholders.conclusion;
-        }
+    // 拆分卡：大问题输入 + 添加任务
+    document.getElementById('splitBigProblem').addEventListener('input', syncSplitBigProblem);
+    document.getElementById('btnAddTask').addEventListener('click', addTask);
+
+    // 三张卡内的 AI 按钮
+    document.querySelectorAll('[data-ai]').forEach(btn => {
+        btn.addEventListener('click', () => requestCardAI(btn.dataset.ai));
+    });
+    document.querySelectorAll('[data-ai-apply]').forEach(btn => {
+        btn.addEventListener('click', () => applyCardAI(btn.dataset.aiApply));
+    });
+    document.querySelectorAll('[data-ai-dismiss]').forEach(btn => {
+        btn.addEventListener('click', () => dismissCardAI(btn.dataset.aiDismiss));
     });
 
-    // Global data-action event delegation
     document.addEventListener('click', function(e) {
         var target = e.target.closest('[data-action]');
         if (!target) return;
         var action = target.dataset.action;
 
-        // Modal actions
         if (action === 'close' || action.startsWith('close')) {
             var modalId = action.replace('close', '') + 'Modal';
             closeModal(modalId);
@@ -142,11 +136,8 @@ function setupEventListeners() {
             case 'dismiss-time-up': closeModal('timeUpModal'); break;
             case 'rounds-1': setRounds(1); break;
             case 'rounds-2': setRounds(2); break;
-            case 'apply-ai-suggestion': applyAISuggestion(); break;
-            case 'dismiss-ai-suggestion': dismissAISuggestion(); break;
         }
 
-        // Profile actions
         if (action.startsWith('load-profile:')) {
             var name = action.substring('load-profile:'.length);
             loadProfile(name);
@@ -157,14 +148,12 @@ function setupEventListeners() {
         }
     });
 
-    // Export modal actions
     document.getElementById('btnExportGCal').addEventListener('click', exportSelectedToGCal);
     document.getElementById('btnExportICS').addEventListener('click', exportSelectedICS);
 }
 
-// AI Config modal
 function openAIConfig() {
-    const saved = JSON.parse(localStorage.getItem('pomodoro_ai_config') || '{}');
+    const saved = JSON.parse(localStorage.getItem(AI_CONFIG_KEY) || '{}');
     document.getElementById('aiEnabled').checked = saved.enabled || false;
     document.getElementById('aiEndpoint').value = saved.endpoint || '';
     document.getElementById('aiApiKey').value = saved.apiKey || '';
@@ -173,7 +162,6 @@ function openAIConfig() {
     showModal('aiConfigModal');
 }
 
-// Export helper
 var exportSelectedSessions = null;
 
 function exportSelectedToGCal() {
@@ -205,59 +193,122 @@ function exportSelectedICS() {
     closeModal('exportModal');
 }
 
-// AI Suggestion request
-function requestAISuggestion() {
-    var input = document.getElementById('outputInput').value.trim();
-    var currentPhaseKey = PHASE_ORDER[currentPhaseIndex];
+// ---------- 卡级 AI ----------
 
-    var config = JSON.parse(localStorage.getItem('pomodoro_ai_config') || '{}');
+function buildCardPrompt(card) {
+    const c = currentSession.cards;
+    if (card === 'split') {
+        const tasksTxt = c.split.tasks.map((t, i) => `${i + 1}. ${t.text || '(空)'}${t.criterion ? '（标准：' + t.criterion + '）' : ''}`).join('\n');
+        return [
+            '你正在使用决策番茄钟的「问题拆分」阶段。',
+            '今日大问题：' + (c.split.bigProblem || '(还没写)'),
+            '当前拆出的任务：\n' + (tasksTxt || '(还没拆)'),
+            '请给出 1–3 个"5–25 分钟可完成、可判断标准"的小任务建议。',
+            '格式：每行一个任务，写明"动作"和"如何判断已完成"。'
+        ].join('\n\n');
+    }
+    if (card === 'exec') {
+        const phaseKey = PHASE_ORDER[currentPhaseIndex] || 'exec1';
+        const r = phaseKey.startsWith('exec') ? parseInt(phaseKey.slice(4)) : 1;
+        const rd = c.exec.rounds[r];
+        const checked = c.split.tasks.filter(t => rd.checks[t.id]).map(t => '✓ ' + t.text).join('\n');
+        return [
+            '你正在使用决策番茄钟的「执行」阶段（第 ' + r + ' 轮）。',
+            '已完成的任务：\n' + (checked || '(暂无)'),
+            '当前产出草稿：\n' + (rd.output || '(还没写)'),
+            '请帮我把上述产出整理成更聚焦的「' + ({conclusion:'核心结论', concept:'概念卡', evidence:'证据表', snippet:'文段片段'}[rd.outputType] || '结论') + '」，1–2 段即可。'
+        ].join('\n\n');
+    }
+    if (card === 'review') {
+        const phaseKey = PHASE_ORDER[currentPhaseIndex] || 'review1';
+        const r = phaseKey.startsWith('review') ? parseInt(phaseKey.slice(6)) : 1;
+        const rd = c.review.rounds[r];
+        const execRd = c.exec.rounds[r];
+        return [
+            '你正在使用决策番茄钟的「复盘」阶段（第 ' + r + ' 轮）。',
+            '本轮执行产出：\n' + (execRd.output || '(无)'),
+            '已写的发现：' + (rd.finding || '(空)'),
+            '已写的失误：' + (rd.mistake || '(空)'),
+            '已写的下一步：' + (rd.nextStep || '(空)'),
+            '请给出 3 行建议（各 1 句话）：① 一个真正的"发现" ② 一个值得记的"失误" ③ 下一个番茄钟最该做的事。'
+        ].join('\n\n');
+    }
+    return '';
+}
+
+function requestCardAI(card) {
+    const config = JSON.parse(localStorage.getItem(AI_CONFIG_KEY) || '{}');
     if (!config.enabled || !config.apiKey) {
-        showStatus('请先在 AI 配置中设置并启用 API', 'warning');
+        showStatus('请先在 🤖 AI 配置中启用并填入 API', 'warning');
         return;
     }
 
-    document.getElementById('btnAISuggest').classList.add('hidden');
-    document.getElementById('aiLoading').classList.remove('hidden');
+    const btn = document.querySelector(`[data-ai="${card}"]`);
+    const result = document.querySelector(`[data-ai-result="${card}"]`);
+    const textBox = document.querySelector(`[data-ai-text="${card}"]`);
+    btn.disabled = true;
+    btn.textContent = '⏳ AI 思考中...';
 
-    var prompt = '';
-    if (currentPhaseKey === 'split') {
-        prompt = '你正在使用决策番茄钟的「问题拆分」阶段。需要把以下大问题拆解为"今天能完成、可判断标准"的小任务。当前输入：\n\n' + (input || '（还没有输入）') + '\n\n请给出具体的下一步行动建议，要求：\n1. 每个任务5-25分钟内可完成\n2. 可判断是否完成\n3. 列出最多3个选项';
-    } else if (currentPhaseKey === 'review1' || currentPhaseKey === 'review2') {
-        prompt = '你正在使用决策番茄钟的「复盘」阶段。基于以下执行产出，请帮我复盘总结：\n\n' + input + '\n\n请评估：1）是否达到初步完成标准？2）还有哪些遗漏？3）下一步建议';
-    } else {
-        prompt = '当前正在执行以下任务，请给出建议帮助我保持专注和高效：\n\n' + input + '\n\n请给出1-2条简洁建议';
-    }
+    const prompt = buildCardPrompt(card);
 
     fetch(config.endpoint, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + config.apiKey
-        },
-        body: JSON.stringify({
-            model: config.model,
-            messages: [{ role: 'user', content: prompt }],
-            max_tokens: 500
-        })
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + config.apiKey },
+        body: JSON.stringify({ model: config.model, messages: [{ role: 'user', content: prompt }], max_tokens: 600 })
     })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
-        document.getElementById('aiLoading').classList.add('hidden');
+    .then(r => r.json())
+    .then(data => {
+        btn.disabled = false;
+        btn.textContent = aiBtnText(card);
         var text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
         if (text) {
-            document.getElementById('aiSuggestionText').textContent = text;
-            document.getElementById('aiSuggestion').classList.remove('hidden');
+            textBox.textContent = text;
+            result.classList.remove('hidden');
         } else {
-            document.getElementById('btnAISuggest').classList.remove('hidden');
             showStatus('AI 返回异常，请重试', 'warning');
         }
     })
-    .catch(function(err) {
-        document.getElementById('aiLoading').classList.add('hidden');
-        document.getElementById('btnAISuggest').classList.remove('hidden');
+    .catch(err => {
+        btn.disabled = false;
+        btn.textContent = aiBtnText(card);
         showStatus('AI 请求失败：' + err.message, 'danger');
     });
 }
 
-// Go
+function aiBtnText(card) {
+    return { split: '🤖 让 AI 帮我拆任务', exec: '🤖 让 AI 帮我聚焦/整理', review: '🤖 让 AI 帮我提炼经验' }[card];
+}
+
+function applyCardAI(card) {
+    const text = document.querySelector(`[data-ai-text="${card}"]`).textContent;
+    if (!text) return;
+    if (card === 'split') {
+        // 把首行作为大问题/或追加到任务区注释中
+        const ta = document.getElementById('splitBigProblem');
+        ta.value = (ta.value ? ta.value + '\n\n' : '') + '[AI 建议]\n' + text;
+        ta.dispatchEvent(new Event('input'));
+    } else {
+        const phaseKey = PHASE_ORDER[currentPhaseIndex];
+        if (card === 'exec' && phaseKey && phaseKey.startsWith('exec')) {
+            const r = parseInt(phaseKey.slice(4));
+            const ta = document.querySelector(`[data-output="exec${r}"]`);
+            ta.value = (ta.value ? ta.value + '\n\n' : '') + text;
+            ta.dispatchEvent(new Event('input'));
+        } else if (card === 'review' && phaseKey && phaseKey.startsWith('review')) {
+            const r = parseInt(phaseKey.slice(6));
+            const target = document.querySelector(`[data-review-field="finding${r}"]`);
+            if (target && !target.value) {
+                target.value = text.split('\n')[0].slice(0, 200);
+                target.dispatchEvent(new Event('input'));
+            }
+        }
+    }
+    document.querySelector(`[data-ai-result="${card}"]`).classList.add('hidden');
+    showStatus('已采用 AI 建议', 'success');
+}
+
+function dismissCardAI(card) {
+    document.querySelector(`[data-ai-result="${card}"]`).classList.add('hidden');
+}
+
 init();

@@ -9,26 +9,28 @@ import { buildPhaseOrder, getActiveProfile, DEFAULT_ROUNDS } from './config.js';
 import { Sounds, toggleSound } from './sound.js';
 import {
     updatePhaseIndicator, updatePhaseUI, updateTimerDisplay, updateProgress,
-    showStatus, showModal, closeModal, renderPhaseIndicator, updateSubtitle,
-    getOutputType, setOutputType
+    showStatus, showModal, closeModal, renderPhaseIndicator, updateSubtitle
 } from './ui.js';
 import { saveSession, renderHistory } from './storage.js';
+import { currentPhaseHasInput, currentPhaseSnapshot, renderAllCards } from './cards.js';
 
 export { toggleSound };
 
 export function startTimer() {
     const currentPhaseKey = PHASE_ORDER[currentPhaseIndex];
 
-    if (currentPhaseKey === 'split' && !document.getElementById('outputInput').value.trim()) {
-        showStatus('拆分阶段必须先写出"具体下一步动作"才能开始！', 'warning');
-        document.getElementById('outputInput').focus();
+    if (currentPhaseKey === 'split' && !currentPhaseHasInput()) {
+        showStatus('请先在「拆分」卡里写出今日大问题或至少一个任务再开始！', 'warning');
+        document.getElementById('splitBigProblem').focus();
         return;
     }
 
     if (!currentSession.startTime) {
         var session = { ...currentSession };
         session.startTime = new Date().toISOString();
-        session.taskName = document.getElementById('outputInput').value.trim().substring(0, 50);
+        if (!session.taskName) {
+            session.taskName = (session.cards && session.cards.split.bigProblem || '').trim().substring(0, 50);
+        }
         updateCurrentSession(session);
     }
 
@@ -102,28 +104,32 @@ export function completePhase() {
     Sounds.phaseComplete();
 
     const currentPhaseKey = PHASE_ORDER[currentPhaseIndex];
-    const output = document.getElementById('outputInput').value.trim();
 
-    if (currentPhaseKey.startsWith('exec') && !output) {
+    if (currentPhaseKey.startsWith('exec') && !currentPhaseHasInput()) {
         showStatus('执行阶段必须有产出！没有产出不算完成一轮。', 'danger');
         document.getElementById('btnStart').classList.remove('hidden');
         document.getElementById('btnPause').classList.add('hidden');
         return;
     }
 
+    const snapshot = currentPhaseSnapshot();
+
     var session = { ...currentSession };
     session.phases.push({
         phase: currentPhaseKey,
         phaseName: PHASES[currentPhaseKey].name,
-        outputType: getOutputType(),
-        outputTypeName: document.getElementById('outputTypeGroup').querySelector('.output-type-btn.active').textContent.trim(),
-        output: output,
+        outputType: snapshot.outputType,
+        outputTypeName: snapshot.outputTypeName,
+        output: snapshot.output,
         completedAt: new Date().toISOString()
     });
     updateCurrentSession(session);
 
-    document.querySelector(`[data-phase="${currentPhaseKey}"]`).classList.add('completed');
-    document.querySelector(`[data-phase="${currentPhaseKey}"]`).classList.remove('active');
+    var indicator = document.querySelector(`[data-phase="${currentPhaseKey}"]`);
+    if (indicator) {
+        indicator.classList.add('completed');
+        indicator.classList.remove('active');
+    }
 
     if (currentPhaseKey === 'review1' && currentRounds >= 2 && !checkStandardMet()) {
         showStatus('第一轮未达标，进入第二轮执行。', 'warning');
@@ -143,13 +149,11 @@ export function completePhase() {
     }
 
     const nextPhaseKey = PHASE_ORDER[nextIndex];
-    // 浏览器桌面通知
     sendNotification(
         PHASES[currentPhaseKey].icon + ' ' + PHASES[currentPhaseKey].name + ' 完成',
         '下一阶段：' + PHASES[nextPhaseKey].icon + ' ' + PHASES[nextPhaseKey].name
     );
 
-    // 站内弹窗：时间到提醒
     showTimeUpModal(
         PHASES[currentPhaseKey].icon + ' ' + PHASES[currentPhaseKey].name + ' 时间到',
         '下一阶段：' + PHASES[nextPhaseKey].icon + ' ' + PHASES[nextPhaseKey].name
@@ -162,8 +166,8 @@ export function completePhase() {
     updatePhaseUI();
     updateTimerDisplay();
     updateProgress();
+    renderAllCards();
 
-    document.getElementById('outputInput').value = '';
     document.getElementById('btnStart').classList.remove('hidden');
     document.getElementById('btnPause').classList.add('hidden');
 
@@ -214,8 +218,16 @@ export function handleStuckOption(option) {
         angle: '【换角度】换个问法重新思考：',
         action: '【最小行动】不管完美，先做：'
     };
-    document.getElementById('outputInput').value = templates[option] + '\n' + (document.getElementById('outputInput').value || '');
-    document.getElementById('outputInput').focus();
+    // v3.0：写入当前执行轮次的 stuck 字段（如在执行阶段），否则忽略
+    const key = PHASE_ORDER[currentPhaseIndex];
+    if (key && key.startsWith('exec')) {
+        const r = parseInt(key.slice(4));
+        const session = { ...currentSession };
+        const prev = session.cards.exec.rounds[r].stuck;
+        session.cards.exec.rounds[r].stuck = (prev ? prev + '\n' : '') + templates[option];
+        updateCurrentSession(session);
+        renderAllCards();
+    }
     showStatus('已选择应对策略，继续执行', 'info');
     startTimer();
 }
@@ -240,7 +252,6 @@ function renderIdeas() {
     ).join('');
 }
 
-// 浏览器桌面通知
 function sendNotification(title, body) {
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
     new Notification(title, {
@@ -250,7 +261,6 @@ function sendNotification(title, body) {
     });
 }
 
-// 站内弹窗：时间到提醒
 function showTimeUpModal(title, body) {
     document.getElementById('timeUpModalTitle').textContent = title;
     document.getElementById('timeUpModalText').textContent = body;

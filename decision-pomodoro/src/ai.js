@@ -1,5 +1,5 @@
 import { AI_CONFIG_KEY } from './config.js';
-import { showStatus, showModal, closeModal } from './ui.js';
+import { showStatus, closeModal } from './ui.js';
 
 export function toggleAIConfigFields() {
     var enabled = document.getElementById('aiEnabled').checked;
@@ -25,22 +25,19 @@ export function testAIConnection() {
 
     fetch(endpoint, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + apiKey
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey },
         body: JSON.stringify({
             model: model,
             messages: [{ role: 'user', content: '回复"连接成功"即可' }],
             max_tokens: 20
         })
     })
-    .then(function(r) { return r.json(); })
-    .then(function(data) {
+    .then(r => r.json())
+    .then(() => {
         document.getElementById('aiTestResult').className = 'status-message success';
         document.getElementById('aiTestResult').textContent = '✅ 连接成功！';
     })
-    .catch(function(err) {
+    .catch(err => {
         document.getElementById('aiTestResult').className = 'status-message danger';
         document.getElementById('aiTestResult').textContent = '❌ 连接失败：' + err.message;
     });
@@ -56,20 +53,4 @@ export function saveAIConfig() {
     localStorage.setItem(AI_CONFIG_KEY, JSON.stringify(config));
     closeModal('aiConfigModal');
     showStatus('AI 配置已保存', 'success');
-}
-
-export function applyAISuggestion() {
-    var text = document.getElementById('aiSuggestionText').textContent;
-    if (text) {
-        document.getElementById('outputInput').value = text;
-    }
-    document.getElementById('aiSuggestion').classList.add('hidden');
-    document.getElementById('btnAISuggest').classList.remove('hidden');
-    showStatus('已采用 AI 建议', 'success');
-}
-
-export function dismissAISuggestion() {
-    document.getElementById('aiSuggestion').classList.add('hidden');
-    document.getElementById('btnAISuggest').classList.remove('hidden');
-    showStatus('AI 建议已关闭，继续手动填写', 'info');
 }

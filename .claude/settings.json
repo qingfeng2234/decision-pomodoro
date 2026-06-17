@@ -3,8 +3,13 @@
     "allow": [
       "Bash(git:*)",
       "Bash(gh:*)",
+      "Bash(npm:*)",
+      "Bash(npx:*)",
       "PowerShell(git*)",
-      "PowerShell(gh*)"
+      "PowerShell(gh*)",
+      "PowerShell(npm*)",
+      "PowerShell(npx*)",
+      "PowerShell(cd *)"
     ]
   }
 }

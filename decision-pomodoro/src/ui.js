@@ -1,4 +1,5 @@
 import { PHASE_ORDER, PHASES, currentPhaseIndex, timeRemaining, totalTime } from './state.js';
+import { updateCardActivation } from './cards.js';
 
 export function updatePhaseIndicator() {
     document.querySelectorAll('.phase-step').forEach((step, index) => {
@@ -11,18 +12,11 @@ export function updatePhaseIndicator() {
 
 export function updatePhaseUI() {
     const currentPhaseKey = PHASE_ORDER[currentPhaseIndex];
+    if (!currentPhaseKey) return;
     const phase = PHASES[currentPhaseKey];
-    document.getElementById('phaseName').textContent = phase.name + '阶段';
-    document.getElementById('hintText').textContent = phase.hint;
-    document.getElementById('outputLabelIcon').textContent = phase.icon;
-
-    if (currentPhaseKey === 'split') {
-        setOutputType('action');
-    } else if (currentPhaseKey.startsWith('exec')) {
-        setOutputType('conclusion');
-    } else if (currentPhaseKey.startsWith('review')) {
-        setOutputType('evidence');
-    }
+    const nameEl = document.getElementById('phaseName');
+    if (nameEl) nameEl.textContent = phase.name + '阶段';
+    updateCardActivation();
 }
 
 export function updateTimerDisplay() {
@@ -86,27 +80,3 @@ export function showModal(id) {
 export function closeModal(id) {
     document.getElementById(id).classList.remove('show');
 }
-
-function getOutputType() {
-    var active = document.getElementById('outputTypeGroup').querySelector('.output-type-btn.active');
-    return active ? active.dataset.value : 'conclusion';
-}
-
-function setOutputType(value) {
-    document.getElementById('outputTypeGroup').querySelectorAll('.output-type-btn').forEach(function(btn) {
-        btn.classList.toggle('active', btn.dataset.value === value);
-    });
-    updateOutputPlaceholder(value);
-}
-
-function updateOutputPlaceholder(type) {
-    var placeholders = {
-        conclusion: '例如：核心结论是 XXX，因为 YYY 证据表明...',
-        concept:    '例如：概念卡：「XX效应」— 当 A 条件满足时，B 会自动发生...',
-        evidence:   '例如：✅ 支持：实验数据表明... | ❌ 反对：但 XX 情况下不成立...',
-        action:     '例如：今天要完成PHE降解实验的样品前处理，具体动作是称取3组沉积物样品各5g'
-    };
-    document.getElementById('outputInput').placeholder = placeholders[type] || placeholders.conclusion;
-}
-
-export { getOutputType, setOutputType, updateOutputPlaceholder };
