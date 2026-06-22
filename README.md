@@ -11,7 +11,7 @@
 - **新想法拦截器**：突发想法即时记录，本轮结束后再处理，避免跳转
 - **木鱼音效**：基于 Web Audio API + ConvolverNode 的真实混响
 - **浏览器桌面通知**：阶段切换自动弹通知
-- **Google Calendar 集成**：一键导出当日番茄钟为 `.ics` 文件
+- **Google Calendar 集成**：读取今日日程并关联到番茄钟 session；支持 OAuth 连接、ICS 导出与 Markdown 导出
 - **AI 助手**：可配置 OpenAI 兼容接口，在拆分/复盘阶段给出建议
 - **完全本地**：所有数据存浏览器 localStorage，零后端、零隐私外泄
 
@@ -56,6 +56,7 @@ pomodoro/
 │       ├── export.js         # ICS / Markdown 导出
 │       ├── settings.js       # 设置面板
 │       ├── ai.js             # AI 助手
+│       ├── calendar.js       # Google Calendar OAuth + 日程读取
 │       └── style.css
 ├── archives/                 # v1.x 旧版本存档（单 HTML）
 ├── start.bat                 # 一键启动脚本
@@ -63,10 +64,21 @@ pomodoro/
 └── CLAUDE.md                 # AI agent 工作约定
 ```
 
+## Google Calendar 集成配置
+
+1. 去 [Google Cloud Console](https://console.cloud.google.com) 创建项目
+2. 启用 **Google Calendar API**
+3. 创建 **OAuth 2.0 Client ID**（应用类型：Web 应用）
+4. 把 `http://localhost:5173` 加到 **Authorized JavaScript origins**
+5. 在 OAuth 同意屏幕 (Consent Screen) 里把自己的 Gmail 加入 **测试用户**
+6. 在番茄钟里点击「连接」→ 填入上面的 Client ID → 完成授权
+
+成功后即可在面板中看到今日日程，点击日程即关联到当前番茄钟 session。
+
 ## 数据备份
 
 浏览器按 F12 → Application → Local Storage → 复制 `pomodoro_YYYY-MM-DD` 键值即可备份单日记录。
 
 ## 版本
 
-当前版本 **v2.0**，详见 [CHANGELOG.md](./CHANGELOG.md)。
+当前版本 **v3.4**，详见 [CHANGELOG.md](./CHANGELOG.md)。
