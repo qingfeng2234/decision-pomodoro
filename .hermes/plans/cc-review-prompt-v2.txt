@@ -1,0 +1,18 @@
+你是 Claude Code，需要审查并修订一份前端项目的实施计划。
+
+## 执行步骤
+
+1. 用 Read 工具读取: .hermes/plans/2026-06-20_150000-gcal-calendar-link.md
+
+2. 审查该计划，重点检查：
+   - OAuth 流程是否正确（initTokenClient、id_token、scope）
+   - 代码示例有无 bug（import 遗漏、字段名不一致、async 用法）
+   - 边缘情况（全天事件、token 过期静默续期、XSS、ICS 转义）
+   - 工程规范（CHANGELOG、tag、Authorized origins）
+
+3. 对所有发现的问题，输出完整修改后的计划文档全文（约 700 行）。
+   直接输出 Markdown 正文，不要用代码块包裹。
+
+4. 在文档末尾附一段 "## CC 修改清单"，简短列出你改了哪些内容。
+
+现在开始。

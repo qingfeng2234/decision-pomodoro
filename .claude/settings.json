@@ -10,7 +10,18 @@
       "PowerShell(npm*)",
       "PowerShell(npx*)",
       "PowerShell(cd *)",
-      "PowerShell(& \"decision-pomodoro*)"
+      "PowerShell(& \"decision-pomodoro*)",
+      "Edit",
+      "Write",
+      "Read",
+      "Bash(ls:*)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(echo:*)",
+      "Bash(mkdir:*)",
+      "Bash(cp:*)",
+      "Bash(mv:*)",
+      "Bash(rm:*)"
     ]
   }
 }

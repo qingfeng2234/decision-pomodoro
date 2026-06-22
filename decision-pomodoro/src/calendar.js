@@ -241,9 +241,12 @@ export function renderEvents(events, container) {
         container.appendChild(empty);
         return;
     }
+    const sel = getSelectedEvent();
     events.forEach((ev) => {
         const item = document.createElement('div');
-        item.className = 'gcal-event' + (ev.isAllDay ? ' all-day' : '');
+        item.className = 'gcal-event' + (ev.isAllDay ? ' all-day' : '') +
+            (sel && sel.id === ev.id ? ' selected' : '');
+        item.dataset.eventId = ev.id;
         const time = document.createElement('span');
         time.className = 'gcal-event-time';
         time.textContent = ev.isAllDay
@@ -262,6 +265,43 @@ export function renderEvents(events, container) {
         }
         container.appendChild(item);
     });
+}
+
+// ---------- 事件选中（关联到番茄钟 session） ----------
+
+let selectedEvent = null;
+let _cachedEvents = null;
+
+export function selectEvent(ev) {
+    selectedEvent = {
+        id: ev.id,
+        title: ev.title,
+        start: ev.start,
+        end: ev.end,
+        isAllDay: ev.isAllDay
+    };
+    document.dispatchEvent(new CustomEvent('gcal:link-event', {
+        detail: { ...selectedEvent }
+    }));
+}
+
+export function deselectEvent() {
+    selectedEvent = null;
+    document.dispatchEvent(new CustomEvent('gcal:link-event', {
+        detail: null
+    }));
+}
+
+export function getSelectedEvent() {
+    return selectedEvent;
+}
+
+export function getCachedEvents() {
+    return _cachedEvents;
+}
+
+export function setCachedEvents(events) {
+    _cachedEvents = events;
 }
 
 // ---------- 配置面板（Client ID 持久化的便利方法） ----------

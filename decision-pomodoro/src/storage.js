@@ -1,6 +1,11 @@
 import { currentSession, PHASES, PHASE_ORDER, currentRounds } from './state.js';
 import { DEFAULT_ROUNDS } from './config.js';
 
+function escapeText(str) {
+    if (str == null) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 export function saveSession() {
     if (currentSession.phases.length === 0 && currentSession.ideas.length === 0) return;
 
@@ -31,7 +36,11 @@ export function renderHistory() {
         }).join('<br>');
 
         const ideaSummary = session.ideas.length > 0
-            ? `<br><strong>💭 延后想法 (${session.ideas.length}个):</strong> ${session.ideas.map(i => i.text).join('；').substring(0, 60)}...`
+            ? `<br><strong>💭 延后想法 (${session.ideas.length}个):</strong> ${session.ideas.map(i => escapeText(i.text)).join('；').substring(0, 60)}...`
+            : '';
+
+        const linkedInfo = session.linkedEvent
+            ? `<br>📅 关联日程：${escapeText(session.linkedEvent.title || '')}${session.linkedEvent.isAllDay ? '（全天）' : ''}`
             : '';
 
         return `
@@ -39,6 +48,7 @@ export function renderHistory() {
                 <div class="history-time">#${index + 1} ${new Date(session.startTime).toLocaleTimeString('zh-CN')}</div>
                 <div><strong>任务：</strong>${session.taskName || '未命名'}</div>
                 <div>${phaseSummary}</div>
+                ${linkedInfo}
                 ${ideaSummary}
             </div>
         `;

@@ -2,6 +2,15 @@ import { getActiveProfile, DEFAULT_ROUNDS } from './config.js';
 import { PHASES, PHASE_ORDER } from './state.js';
 import { showStatus, showModal } from './ui.js';
 
+function escapeICS(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/\\/g, '\\\\')
+        .replace(/;/g, '\\;')
+        .replace(/,/g, '\\,')
+        .replace(/\r\n|\r|\n/g, '\\n');
+}
+
 export function exportICS() {
     const key = 'pomodoro_' + new Date().toISOString().split('T')[0];
     const sessions = JSON.parse(localStorage.getItem(key) || '[]');
@@ -25,11 +34,17 @@ export function exportICS() {
     const outputs = latestSession.phases.map(p => {
         var name = PHASES[p.phase] ? PHASES[p.phase].name : p.phase;
         return name + ': [' + (p.outputTypeName || '') + '] ' + p.output;
-    }).join('\\n\\n');
+    }).join('\\\\n\\\\n');
 
     const ideas = latestSession.ideas.length > 0
-        ? '\\n\\n延后想法：\\n' + latestSession.ideas.map(i => `- ${i.text}`).join('\\n')
+        ? '\\\\n\\\\n延后想法：\\\\n' + latestSession.ideas.map(i => `- ${i.text}`).join('\\\\n')
         : '';
+
+    var desc = outputs + ideas;
+    if (latestSession.linkedEvent) {
+        const le = latestSession.linkedEvent;
+        desc += '\\\\n\\\\n📅 关联日程: ' + le.title + (le.isAllDay ? ' (全天)' : '') + '\\\\n(' + (le.start||'') + ' — ' + (le.end||'') + ')';
+    }
 
     const icsContent = `BEGIN:VCALENDAR
 VERSION:2.0
@@ -39,8 +54,8 @@ UID:${Date.now()}@decision-pomodoro
 DTSTAMP:${formatDate(new Date())}
 DTSTART:${formatDate(startDate)}
 DTEND:${formatDate(endDate)}
-SUMMARY:🍅 决策番茄钟 - ${latestSession.taskName || '专注 session'}
-DESCRIPTION:${outputs.replace(/\n/g, '\\n')}${ideas.replace(/\n/g, '\\n')}
+SUMMARY:${escapeICS('🍅 决策番茄钟 - ' + (latestSession.taskName || '专注 session'))}
+DESCRIPTION:${escapeICS(desc)}
 END:VEVENT
 END:VCALENDAR`;
 
@@ -79,8 +94,13 @@ export function exportMarkdown() {
         const endTime = lastPhase && lastPhase.completedAt ? new Date(lastPhase.completedAt) : null;
         const endTimeStr = endTime ? endTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' }) : '--:--';
 
-        md += '## 轮次 ' + (index + 1) + ' - ' + startTimeStr + ' ~ ' + endTimeStr + '\n\n';
-        md += '**任务：** ' + (session.taskName || '未命名任务') + '\n\n';
+        md += '## 轮次 ' + (index + 1) + ' - ' + startTimeStr + ' ~ ' + endTimeStr + '\\n\\n';
+        md += '**任务：** ' + (session.taskName || '未命名任务') + '\\n\\n';
+
+        if (session.linkedEvent) {
+            const le = session.linkedEvent;
+            md += '**📅 关联日程：** ' + le.title + (le.isAllDay ? '（全天）' : '') + '\\n\\n';
+        }
 
         if (session.phases.length > 0) {
             md += '| 阶段 | 类型 | 产出 |\n';

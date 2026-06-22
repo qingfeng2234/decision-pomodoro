@@ -19,7 +19,9 @@ import { ensureCardsInit, renderAllCards, addTask, syncSplitBigProblem, addRound
 import {
     loadGCalConfig, saveClientId, connect as gcalConnect,
     disconnect as gcalDisconnect, isConnected, getConnectedEmail,
-    fetchTodayEvents, renderEvents
+    fetchTodayEvents, renderEvents,
+    selectEvent, deselectEvent, getSelectedEvent,
+    getCachedEvents, setCachedEvents
 } from './calendar.js';
 
 function init() {
@@ -45,6 +47,7 @@ function init() {
         phases: [],
         ideas: [],
         taskName: '',
+        linkedEvent: null,
         version: 3,
         cards: null
     });
@@ -188,6 +191,27 @@ function setupEventListeners() {
     document.addEventListener('gcal:events', onGCalEvents);
     document.addEventListener('gcal:error', (e) => {
         showStatus(e.detail.message || 'GCal 错误', 'danger');
+    });
+    document.addEventListener('gcal:link-event', (e) => {
+        const s = { ...currentSession };
+        s.linkedEvent = e.detail;
+        updateCurrentSession(s);
+    });
+
+    // GCal 事件列表：点击选中/取消
+    document.getElementById('gcalEventList').addEventListener('click', (e) => {
+        const item = e.target.closest('.gcal-event');
+        if (!item || !item.dataset.eventId) return;
+        const cached = getCachedEvents();
+        if (!cached) return;
+        const ev = cached.find(ev => ev.id === item.dataset.eventId);
+        if (!ev) return;
+        if (getSelectedEvent() && getSelectedEvent().id === ev.id) {
+            deselectEvent();
+        } else {
+            selectEvent(ev);
+        }
+        renderEvents(cached, document.getElementById('gcalEventList'));
     });
 }
 
@@ -410,9 +434,12 @@ function onGCalDisconnected() {
     document.getElementById('btnGCalDisconnect').classList.add('hidden');
     document.getElementById('gcalPanel').classList.add('hidden');
     document.getElementById('gcalEventList').innerHTML = '';
+    setCachedEvents(null);
+    deselectEvent();
 }
 
 function onGCalEvents(e) {
+    setCachedEvents(e.detail.events);
     renderEvents(e.detail.events, document.getElementById('gcalEventList'));
 }
 

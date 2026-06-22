@@ -41,4 +41,24 @@
 
 ---
 
-*最后更新：2026-06-17*
+## Claude Code + Hermes Agent 协作
+
+- Hermes MCP 已连接：可用 `mcp__hermes__channels_list` / `conversations_list` / `messages_read` 读取消息状态
+- 构建/PR 完成后可通过 `messages_send` 通知用户
+- 项目注册表：`F:\hermess\hermes-home\project-registry.json`
+- Hermes 可通过 `claude -p "任务" --add-dir "项目路径" --max-turns 10` 调度 cc
+
+### 协作配置文件位置
+
+```
+F:\hermess\
+├── .claude\settings.json                   ← 权限（中间层）
+├── projects\.mcp.json                      ← MCP 注册
+└── hermes-home\
+    ├── hermes-mcp-bridge.bat               ← MCP 桥接启动
+    └── project-registry.json               ← 项目注册表
+```
+
+---
+
+*最后更新：2026-06-20*
