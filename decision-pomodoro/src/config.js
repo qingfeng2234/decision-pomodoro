@@ -15,6 +15,7 @@ export const PROFILES_KEY = 'pomodoro_time_profiles';
 export const ACTIVE_PROFILE_KEY = 'pomodoro_active_profile';
 export const SOUND_PREF_KEY = 'pomodoro_sound_muted';
 export const AI_CONFIG_KEY = 'pomodoro_ai_config';
+export const GCAL_CONFIG_KEY = 'pomodoro_gcal_config';
 export const VOLUME_PREF_KEY = 'pomodoro_mokugyo_volume';
 export const MAX_PROFILES = 5;
 

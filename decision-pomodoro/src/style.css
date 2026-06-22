@@ -968,3 +968,112 @@ h1 {
     font-weight: 600;
 }
 
+/* ---------- 📅 GCal 区（Task 1） ---------- */
+.gcal-section {
+    margin-bottom: 16px;
+}
+
+.gcal-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    border: 1px solid #e1e8f0;
+    font-size: 13px;
+}
+
+.gcal-bar-icon {
+    font-size: 16px;
+}
+
+.gcal-bar-label {
+    font-weight: 600;
+    color: #1e3a5f;
+}
+
+.gcal-status {
+    color: #5c7a9a;
+    font-size: 12px;
+}
+
+.gcal-status.connected {
+    color: #16a34a;
+    font-weight: 600;
+}
+
+.gcal-client-id {
+    flex: 1 1 240px;
+    min-width: 200px;
+    padding: 6px 10px;
+    border: 1px solid #c8d6e5;
+    border-radius: 6px;
+    font-size: 12px;
+}
+
+.gcal-btn {
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+}
+
+.gcal-panel {
+    margin-top: 8px;
+    padding: 12px;
+    background: #fff;
+    border: 1px solid #e1e8f0;
+    border-radius: 10px;
+}
+
+.gcal-panel-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1e3a5f;
+    margin-bottom: 8px;
+}
+
+.gcal-event-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.gcal-empty {
+    color: #94a8be;
+    font-size: 13px;
+    text-align: center;
+    padding: 8px 0;
+}
+
+.gcal-event {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    font-size: 13px;
+    color: #1e3a5f;
+    padding: 6px 8px;
+    background: #f8f9fa;
+    border-radius: 6px;
+}
+
+.gcal-event.all-day {
+    background: #eef4ff;
+}
+
+.gcal-event-time {
+    color: #5c7a9a;
+    font-variant-numeric: tabular-nums;
+    flex-shrink: 0;
+    min-width: 92px;
+}
+
+.gcal-event-title {
+    font-weight: 500;
+}
+
+.gcal-event-loc {
+    color: #94a8be;
+    font-size: 12px;
+}
+

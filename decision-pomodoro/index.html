@@ -29,6 +29,24 @@
             开始新的一天！先输入今天要解决的问题。
         </div>
 
+        <!-- 📅 GCal 连接区 + 今日日程面板（Task 1） -->
+        <div class="gcal-section" id="gcalSection">
+            <div class="gcal-bar">
+                <span class="gcal-bar-icon">📅</span>
+                <span class="gcal-bar-label">Google 日程</span>
+                <span class="gcal-status" id="gcalStatus">未连接</span>
+                <input type="text" id="gcalClientId" class="gcal-client-id hidden"
+                       placeholder="Google OAuth Client ID（仅首次需要）">
+                <button type="button" class="btn btn-secondary gcal-btn" id="btnGCalConnect">连接</button>
+                <button type="button" class="btn btn-secondary gcal-btn hidden" id="btnGCalRefresh">刷新</button>
+                <button type="button" class="btn btn-secondary gcal-btn hidden" id="btnGCalDisconnect">断开</button>
+            </div>
+            <div class="gcal-panel hidden" id="gcalPanel">
+                <div class="gcal-panel-title">今日日程</div>
+                <div class="gcal-event-list" id="gcalEventList"></div>
+            </div>
+        </div>
+
         <div class="timer-section">
             <div class="phase-name" id="phaseName">问题拆分阶段</div>
             <div class="timer-display" id="timerDisplay">05:00</div>

@@ -16,6 +16,11 @@ import { renderSettings, loadProfile, saveAsNewProfile, updateCurrentProfile, de
 import { startTimer, pauseTimer, continueTimer, captureDistraction, completePhase, endSession, handleStuckOption, captureIdea, clearIdeas } from './timer.js';
 import { toggleAIConfigFields, testAIConnection, saveAIConfig } from './ai.js';
 import { ensureCardsInit, renderAllCards, addTask, syncSplitBigProblem, addRound2, removeRound2, canRemoveRound2, renderRoundToggle } from './cards.js';
+import {
+    loadGCalConfig, saveClientId, connect as gcalConnect,
+    disconnect as gcalDisconnect, isConnected, getConnectedEmail,
+    fetchTodayEvents, renderEvents
+} from './calendar.js';
 
 function init() {
     const profile = getActiveProfile();
@@ -62,6 +67,9 @@ function init() {
     renderAllCards();
     updatePhaseUI();
     setupEventListeners();
+
+    // GCal 初始化：恢复 Client ID，刷新按钮联动
+    initGCalUI();
 }
 
 function setupEventListeners() {
@@ -165,6 +173,22 @@ function setupEventListeners() {
 
     document.getElementById('btnExportGCal').addEventListener('click', exportSelectedToGCal);
     document.getElementById('btnExportICS').addEventListener('click', exportSelectedICS);
+
+    // GCal 按钮
+    document.getElementById('btnGCalConnect').addEventListener('click', onGCalConnect);
+    document.getElementById('btnGCalDisconnect').addEventListener('click', onGCalDisconnect);
+    document.getElementById('btnGCalRefresh').addEventListener('click', onGCalRefresh);
+    document.getElementById('gcalClientId').addEventListener('change', () => {
+        saveClientId(document.getElementById('gcalClientId').value);
+    });
+
+    // GCal 事件监听
+    document.addEventListener('gcal:connected', onGCalConnected);
+    document.addEventListener('gcal:disconnected', onGCalDisconnected);
+    document.addEventListener('gcal:events', onGCalEvents);
+    document.addEventListener('gcal:error', (e) => {
+        showStatus(e.detail.message || 'GCal 错误', 'danger');
+    });
 }
 
 function openAIConfig() {
@@ -324,6 +348,81 @@ function applyCardAI(card) {
 
 function dismissCardAI(card) {
     document.querySelector(`[data-ai-result="${card}"]`).classList.add('hidden');
+}
+
+// ---------- GCal 集成 ----------
+
+function initGCalUI() {
+    const cfg = loadGCalConfig();
+    if (cfg.clientId) {
+        document.getElementById('gcalClientId').value = cfg.clientId;
+        document.getElementById('gcalClientId').classList.remove('hidden');
+        document.getElementById('btnGCalConnect').textContent = '授权';
+    }
+    if (isConnected()) {
+        setGCalConnectedState(getConnectedEmail());
+    }
+}
+
+function onGCalConnect() {
+    const clientId = document.getElementById('gcalClientId').value.trim();
+    if (!clientId) {
+        // 首次：展开输入框
+        document.getElementById('gcalClientId').classList.remove('hidden');
+        document.getElementById('gcalClientId').focus();
+        return;
+    }
+    saveClientId(clientId);
+    document.getElementById('btnGCalConnect').disabled = true;
+    document.getElementById('btnGCalConnect').textContent = '授权中...';
+    gcalConnect(clientId).finally(() => {
+        document.getElementById('btnGCalConnect').disabled = false;
+        document.getElementById('btnGCalConnect').textContent = '授权';
+    });
+}
+
+async function onGCalDisconnect() {
+    await gcalDisconnect();
+}
+
+async function onGCalRefresh() {
+    const list = document.getElementById('gcalEventList');
+    list.innerHTML = '<div class="gcal-loading">加载中...</div>';
+    try {
+        const events = await fetchTodayEvents();
+        renderEvents(events, list);
+    } catch (e) {
+        list.innerHTML = '<div class="gcal-error">' + e.message + '</div>';
+    }
+}
+
+function onGCalConnected(e) {
+    setGCalConnectedState(e.detail.email || '');
+    document.getElementById('gcalClientId').classList.add('hidden');
+    showStatus('已连接 Google Calendar', 'success');
+    onGCalRefresh();
+}
+
+function onGCalDisconnected() {
+    document.getElementById('gcalStatus').textContent = '未连接';
+    document.getElementById('btnGCalConnect').classList.remove('hidden');
+    document.getElementById('btnGCalRefresh').classList.add('hidden');
+    document.getElementById('btnGCalDisconnect').classList.add('hidden');
+    document.getElementById('gcalPanel').classList.add('hidden');
+    document.getElementById('gcalEventList').innerHTML = '';
+}
+
+function onGCalEvents(e) {
+    renderEvents(e.detail.events, document.getElementById('gcalEventList'));
+}
+
+function setGCalConnectedState(email) {
+    const label = email ? '已连接：' + email : '已连接';
+    document.getElementById('gcalStatus').textContent = label;
+    document.getElementById('btnGCalConnect').classList.add('hidden');
+    document.getElementById('btnGCalRefresh').classList.remove('hidden');
+    document.getElementById('btnGCalDisconnect').classList.remove('hidden');
+    document.getElementById('gcalPanel').classList.remove('hidden');
 }
 
 init();
