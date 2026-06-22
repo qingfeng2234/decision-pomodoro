@@ -62,6 +62,36 @@
 
 ---
 
+## 2026-06-23：v3.4 Google Calendar 日程关联
+
+### 新增
+- GCal OAuth 连接（GIS Token Client，calendar.readonly + userinfo.email scope）
+- 今日日程面板（含全天事件标记、点击选中/取消）
+- 番茄钟 session 关联到日程事件（linkedEvent 字段）
+- 历史记录展示关联日程
+- ICS 导出含关联（RFC 5545 DESCRIPTION 转义）
+- Markdown 导出含关联日程
+
+### 改动
+- 新增 `src/calendar.js` 模块（OAuth + Calendar API + 事件管理）
+- 新增 `pomodoro_gcal_config` localStorage key
+- HTML 新增 GCal 连接栏 + 日程面板（`.gcal-section`）
+- 统一 CustomEvent 通信：`gcal:connected` / `gcal:disconnected` / `gcal:events` / `gcal:error` / `gcal:link-event`
+
+### 安全
+- `disconnect()` 调用 Google OAuth revoke endpoint 撤销服务端 token
+- scope 最小权限：只读日历 + 仅 email 身份识别
+- ICS 输出按 RFC 5545 转义（防逗号/分号/换行破坏格式）
+
+### 文件变化
+- `src/config.js`：新增 GCAL_CONFIG_KEY
+- `src/calendar.js`：新建（~300 行）
+- `index.html`：GCal 连接栏 + 日程面板 + 样式
+- `src/main.js`：GCal 按钮绑定 + 事件处理
+- `src/storage.js`：历史渲染含关联日程
+- `src/export.js`：ICS/MD 导出含关联 + ICS 转义
+- `CHANGELOG.md`：本文件
+
 ## 2026-06-17：v3.3 想法拦截器添加清空按钮
 
 ### 问题
