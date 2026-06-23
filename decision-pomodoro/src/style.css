@@ -114,7 +114,7 @@ h1 {
 }
 
 .phase-step.completed {
-    color: #28a745;
+    color: var(--c-success);
     font-weight: 600;
 }
 
@@ -139,7 +139,7 @@ h1 {
 }
 
 .timer-display.warning {
-    color: #ff6b6b;
+    color: var(--c-danger);
     animation: pulse 1s infinite;
 }
 
@@ -246,13 +246,13 @@ h1 {
 }
 
 .output-required {
-    color: #ff6b6b;
+    color: var(--c-danger);
     font-weight: 600;
 }
 
 .idea-capture {
-    background: #fff3cd;
-    border: 1px solid #ffeaa7;
+    background: var(--c-warning-bg);
+    border: 1px solid var(--c-warning-border);
     border-radius: 12px;
     padding: 16px;
     margin-bottom: 20px;
@@ -261,7 +261,7 @@ h1 {
 .idea-capture-label {
     font-size: 13px;
     font-weight: 600;
-    color: #856404;
+    color: var(--c-warning-ink);
     margin-bottom: 8px;
     display: flex;
     align-items: center;
@@ -271,7 +271,7 @@ h1 {
 .idea-input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #ffeaa7;
+    border: 1px solid var(--c-warning-border);
     border-radius: 6px;
     font-size: 13px;
 }
@@ -279,12 +279,12 @@ h1 {
 .idea-list {
     margin-top: 10px;
     font-size: 12px;
-    color: #856404;
+    color: var(--c-warning-ink);
 }
 
 .idea-item {
     padding: 4px 0;
-    border-bottom: 1px dashed #ffeaa7;
+    border-bottom: 1px dashed var(--c-warning-border);
 }
 
 .action-section {
@@ -321,30 +321,30 @@ h1 {
 }
 
 .btn-success {
-    background: #28a745;
+    background: var(--c-success);
     color: white;
 }
 
 .btn-success:hover:not(:disabled) {
-    background: #218838;
+    background: var(--c-success-strong);
 }
 
 .btn-warning {
-    background: #ffc107;
+    background: var(--c-warning);
     color: var(--c-ink);
 }
 
 .btn-warning:hover:not(:disabled) {
-    background: #e0a800;
+    background: var(--c-warning-strong);
 }
 
 .btn-danger {
-    background: #ff6b6b;
+    background: var(--c-danger);
     color: white;
 }
 
 .btn-danger:hover:not(:disabled) {
-    background: #ff5252;
+    background: var(--c-danger-strong);
 }
 
 .btn-secondary {
@@ -428,23 +428,23 @@ h1 {
 }
 
 .status-message.info {
-    background: #d1ecf1;
-    color: #0c5460;
+    background: var(--c-info-bg);
+    color: var(--c-info-ink);
 }
 
 .status-message.success {
-    background: #d4edda;
-    color: #155724;
+    background: var(--c-success-bg);
+    color: var(--c-success-ink);
 }
 
 .status-message.warning {
-    background: #fff3cd;
-    color: #856404;
+    background: var(--c-warning-bg);
+    color: var(--c-warning-ink);
 }
 
 .status-message.danger {
-    background: #f8d7da;
-    color: #721c24;
+    background: var(--c-danger-bg);
+    color: var(--c-danger-ink);
 }
 
 .markdown-export-content {
@@ -667,7 +667,7 @@ h1 {
 
 .capsule-card.completed {
     opacity: 0.92;
-    border-color: #d4edda;
+    border-color: var(--c-success-bg);
 }
 
 .capsule-card.locked .capsule-body {
@@ -708,7 +708,7 @@ h1 {
 }
 
 .capsule-card.completed .capsule-status {
-    background: #28a745;
+    background: var(--c-success);
     color: white;
 }
 
@@ -790,7 +790,7 @@ h1 {
 .task-item .task-remove {
     background: transparent;
     border: none;
-    color: #ff6b6b;
+    color: var(--c-danger);
     cursor: pointer;
     font-size: 16px;
     padding: 0 4px;
@@ -980,8 +980,8 @@ h1 {
     height: 28px;
     font-size: 13px;
     margin-left: auto;
-    border-color: #ffeaa7;
-    color: #856404;
+    border-color: var(--c-warning-border);
+    color: var(--c-warning-ink);
 }
 
 .idea-clear-btn:hover {
