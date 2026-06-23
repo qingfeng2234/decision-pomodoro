@@ -67,8 +67,8 @@ body {
 
 .container {
     background: white;
-    border-radius: 20px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    border-radius: var(--r-3xl);
+    box-shadow: var(--shadow-lg);
     width: 100%;
     max-width: 1180px;
     padding: 30px;
@@ -94,14 +94,14 @@ h1 {
     margin-bottom: 24px;
     padding: 12px;
     background: var(--c-surface);
-    border-radius: 12px;
+    border-radius: var(--r-xl);
 }
 
 .phase-step {
     flex: 1;
     text-align: center;
     padding: 8px 4px;
-    border-radius: 8px;
+    border-radius: var(--r-md);
     font-size: 12px;
     color: var(--c-faint);
     transition: all 0.3s;
@@ -166,7 +166,7 @@ h1 {
 
 .output-section {
     background: var(--c-surface);
-    border-radius: 12px;
+    border-radius: var(--r-xl);
     padding: 20px;
     margin-bottom: 20px;
 }
@@ -191,11 +191,11 @@ h1 {
 .output-type-btn {
     padding: 6px 14px;
     border: 2px solid var(--c-accent-border);
-    border-radius: 20px;
+    border-radius: var(--r-3xl);
     background: white;
     font-size: 13px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all var(--transition);
     color: var(--c-accent-ink);
 }
 
@@ -210,14 +210,14 @@ h1 {
     border-color: transparent;
     color: white;
     font-weight: 600;
-    box-shadow: 0 2px 8px rgba(74, 143, 231, 0.35);
+    box-shadow: var(--shadow-btn);
 }
 
 .settings-input {
     width: 100%;
     padding: 10px 12px;
     border: 2px solid var(--c-border);
-    border-radius: 8px;
+    border-radius: var(--r-md);
     font-size: 14px;
     margin-bottom: 12px;
     background: white;
@@ -228,7 +228,7 @@ h1 {
     min-height: 80px;
     padding: 12px;
     border: 2px solid var(--c-border);
-    border-radius: 8px;
+    border-radius: var(--r-md);
     font-size: 14px;
     resize: vertical;
     font-family: inherit;
@@ -253,7 +253,7 @@ h1 {
 .idea-capture {
     background: var(--c-warning-bg);
     border: 1px solid var(--c-warning-border);
-    border-radius: 12px;
+    border-radius: var(--r-xl);
     padding: 16px;
     margin-bottom: 20px;
 }
@@ -272,7 +272,7 @@ h1 {
     width: 100%;
     padding: 10px 12px;
     border: 1px solid var(--c-warning-border);
-    border-radius: 6px;
+    border-radius: var(--r-sm);
     font-size: 13px;
 }
 
@@ -298,11 +298,11 @@ h1 {
     min-width: 100px;
     padding: 14px 20px;
     border: none;
-    border-radius: 10px;
+    border-radius: var(--r-lg);
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all var(--transition);
 }
 
 .btn:disabled {
@@ -363,7 +363,7 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background: rgba(0,0,0,0.5);
+    background: var(--overlay);
     justify-content: center;
     align-items: center;
     z-index: 1000;
@@ -375,7 +375,7 @@ h1 {
 
 .modal {
     background: white;
-    border-radius: 16px;
+    border-radius: var(--r-2xl);
     padding: 28px;
     max-width: 420px;
     width: 90%;
@@ -405,11 +405,11 @@ h1 {
 .modal-btn {
     padding: 12px 20px;
     border: 2px solid var(--c-border);
-    border-radius: 10px;
+    border-radius: var(--r-lg);
     background: white;
     font-size: 14px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all var(--transition);
     text-align: left;
 }
 
@@ -421,7 +421,7 @@ h1 {
 .status-message {
     text-align: center;
     padding: 12px;
-    border-radius: 8px;
+    border-radius: var(--r-md);
     margin-bottom: 16px;
     font-size: 13px;
     font-weight: 500;
@@ -452,7 +452,7 @@ h1 {
     min-height: 300px;
     padding: 12px;
     border: 2px solid var(--c-border);
-    border-radius: 8px;
+    border-radius: var(--r-md);
     font-size: 13px;
     font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
     resize: vertical;
@@ -481,7 +481,7 @@ h1 {
 
 .history-item {
     background: var(--c-surface);
-    border-radius: 8px;
+    border-radius: var(--r-md);
     padding: 12px;
     margin-bottom: 8px;
     font-size: 13px;
@@ -499,7 +499,7 @@ h1 {
 .icon-btn {
     background: none;
     border: 2px solid var(--c-border);
-    border-radius: 8px;
+    border-radius: var(--r-md);
     width: 36px;
     height: 36px;
     font-size: 16px;
@@ -507,7 +507,7 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.2s;
+    transition: all var(--transition);
     flex-shrink: 0;
 }
 
@@ -531,7 +531,7 @@ h1 {
 .ai-suggestion-box {
     background: var(--c-brand-tint);
     border: 1px solid var(--c-brand-tint-border);
-    border-radius: 8px;
+    border-radius: var(--r-md);
     padding: 12px;
     margin-top: 8px;
     font-size: 13px;
@@ -557,7 +557,7 @@ h1 {
     gap: 8px;
     padding: 8px;
     background: var(--c-surface);
-    border-radius: 6px;
+    border-radius: var(--r-sm);
     margin-bottom: 6px;
     cursor: pointer;
     font-size: 13px;
@@ -580,7 +580,7 @@ h1 {
 
 .settings-preview {
     background: var(--c-surface);
-    border-radius: 8px;
+    border-radius: var(--r-md);
     padding: 12px;
     margin-bottom: 16px;
     font-size: 13px;
@@ -656,13 +656,13 @@ h1 {
     display: flex;
     flex-direction: column;
     min-height: 0;
-    transition: opacity 0.2s, border-color 0.2s;
+    transition: opacity var(--transition), border-color var(--transition);
 }
 
 .capsule-card.active {
     border-color: var(--c-brand);
     background: white;
-    box-shadow: 0 6px 24px rgba(102, 126, 234, 0.18);
+    box-shadow: var(--shadow-card);
 }
 
 .capsule-card.completed {
@@ -696,7 +696,7 @@ h1 {
 .capsule-status {
     font-size: 11px;
     padding: 3px 9px;
-    border-radius: 10px;
+    border-radius: var(--r-lg);
     background: var(--c-surface-2);
     color: var(--c-muted);
     font-weight: 600;
@@ -851,7 +851,7 @@ h1 {
 /* 执行/复盘卡内的轮次小节 */
 .exec-round, .review-round {
     border: 1px solid var(--c-border-soft);
-    border-radius: 8px;
+    border-radius: var(--r-md);
     background: white;
     overflow: hidden;
 }
@@ -919,7 +919,7 @@ h1 {
     color: var(--c-accent-ink);
     font-size: 12px;
     cursor: pointer;
-    transition: all 0.2s;
+    transition: all var(--transition);
 }
 
 .capsule-ai-btn:hover { background: var(--c-brand-tint-strong); border-color: var(--c-brand); }
@@ -1001,7 +1001,7 @@ h1 {
     color: var(--c-muted);
     padding: 4px 8px;
     background: var(--c-brand-tint);
-    border-radius: 6px;
+    border-radius: var(--r-sm);
     user-select: none;
     transition: background 0.15s;
 }
@@ -1031,7 +1031,7 @@ h1 {
     flex-wrap: wrap;
     padding: 8px 12px;
     background: var(--c-surface);
-    border-radius: 10px;
+    border-radius: var(--r-lg);
     border: 1px solid #e1e8f0;
     font-size: 13px;
 }
@@ -1060,7 +1060,7 @@ h1 {
     min-width: 200px;
     padding: 6px 10px;
     border: 1px solid var(--c-border);
-    border-radius: 6px;
+    border-radius: var(--r-sm);
     font-size: 12px;
 }
 
@@ -1074,7 +1074,7 @@ h1 {
     padding: 12px;
     background: #fff;
     border: 1px solid #e1e8f0;
-    border-radius: 10px;
+    border-radius: var(--r-lg);
 }
 
 .gcal-panel-title {
@@ -1105,7 +1105,7 @@ h1 {
     color: var(--c-ink);
     padding: 6px 8px;
     background: var(--c-surface);
-    border-radius: 6px;
+    border-radius: var(--r-sm);
     cursor: pointer;
     border: 2px solid transparent;
     transition: all 0.15s;
