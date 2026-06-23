@@ -1,3 +1,54 @@
+:root {
+  /* 品牌（主紫） */
+  --c-brand: #667eea;
+  --c-brand-strong: #5a6fd6;        /* 主按钮 hover */
+  --c-brand-deep: #764ba2;          /* 渐变末端 */
+  --c-brand-tint: #f0f4ff;          /* 浅品牌底（AI 框 / 悬停） */
+  --c-brand-tint-strong: #e0eaff;
+  --c-brand-tint-border: #c5d0f5;
+
+  /* 蓝色强调（产出类型按钮 / 日程选中） */
+  --c-accent: #4a8fe7;
+  --c-accent-strong: #3a6fd8;
+  --c-accent-ink: #4a6fa5;
+  --c-accent-border: #bcd4f0;
+  --c-accent-tint: #eaf2fd;
+
+  /* 次要按钮（蓝灰） */
+  --c-secondary: #5a7fa0;
+  --c-secondary-strong: #4c6e8c;
+
+  /* 文字 */
+  --c-ink: #1e3a5f;
+  --c-muted: #5c7a9a;
+  --c-faint: #94a8be;
+
+  /* 背景 / 面 / 线 */
+  --c-bg: #ffffff;                  /* 本轮不使用，留给深色模式 */
+  --c-surface: #f8f9fa;
+  --c-surface-2: #e9ecef;
+  --c-surface-3: #eef1f6;
+  --c-border: #c8d6e5;
+  --c-border-soft: #e0e6ef;
+  --c-border-dashed: #d4dbe6;
+
+  /* 状态 */
+  --c-success: #28a745; --c-success-strong: #218838; --c-success-bg: #d4edda; --c-success-ink: #155724;
+  --c-danger:  #ff6b6b; --c-danger-strong:  #ff5252; --c-danger-bg:  #f8d7da; --c-danger-ink:  #721c24;
+  --c-warning: #ffc107; --c-warning-strong: #e0a800; --c-warning-bg: #fff3cd; --c-warning-ink: #856404; --c-warning-border: #ffeaa7;
+  --c-info-bg: #d1ecf1; --c-info-ink: #0c5460;
+
+  /* 圆角 */
+  --r-sm: 6px; --r-md: 8px; --r-lg: 10px; --r-xl: 12px; --r-2xl: 16px; --r-3xl: 20px;
+
+  /* 阴影 / 蒙层 / 过渡 */
+  --shadow-card: 0 6px 24px rgba(102,126,234,.18);
+  --shadow-lg:   0 20px 60px rgba(0,0,0,.3);
+  --shadow-btn:  0 2px 8px rgba(74,143,231,.35);
+  --overlay:     rgba(0,0,0,.5);
+  --transition:  .2s;
+}
+
 * {
     margin: 0;
     padding: 0;
