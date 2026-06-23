@@ -16,6 +16,38 @@ import { currentPhaseHasInput, currentPhaseSnapshot, renderAllCards } from './ca
 
 export { toggleSound };
 
+// 时间对齐：已提醒过哪些事件，避免重复
+const _eventAlertedIds = new Set();
+
+// 基于时间戳的倒计时：记录本阶段的绝对截止时刻，避免后台/息屏时 setInterval 被节流导致计时漂移
+let phaseDeadline = null;
+
+// 在用户手势（点击「开始」）时申请桌面通知权限——比页面加载时自动申请更可靠
+function ensureNotificationPermission() {
+    if (typeof Notification === 'undefined') return;
+    if (Notification.permission === 'default') {
+        try { Notification.requestPermission(); } catch (e) { /* 旧版返回 Promise 之外的实现，忽略 */ }
+    }
+}
+
+function checkEventTimeAlignment() {
+    if (!currentSession.linkedEvent || currentSession.linkedEvent.isAllDay) return;
+    const endStr = currentSession.linkedEvent.end;
+    if (!endStr) return;
+    const eventEnd = new Date(endStr);
+    if (isNaN(eventEnd.getTime())) return;
+
+    const id = currentSession.linkedEvent.id;
+    if (_eventAlertedIds.has(id)) return;
+
+    const minsLeft = Math.floor((eventEnd.getTime() - Date.now()) / 60000);
+    if (minsLeft <= 5 && minsLeft >= 0) {
+        _eventAlertedIds.add(id);
+        showStatus('⏰ 关联日程「' + currentSession.linkedEvent.title + '」还有 ' + minsLeft + ' 分钟结束，注意收尾！', 'warning');
+        sendNotification('⏰ 日程即将结束', '「' + currentSession.linkedEvent.title + '」还有 ' + minsLeft + ' 分钟');
+    }
+}
+
 export function startTimer() {
     const currentPhaseKey = PHASE_ORDER[currentPhaseIndex];
 
@@ -34,6 +66,8 @@ export function startTimer() {
         updateCurrentSession(session);
     }
 
+    ensureNotificationPermission();
+
     updateIsRunning(true);
     updateIsPaused(false);
     document.getElementById('btnStart').classList.add('hidden');
@@ -44,28 +78,55 @@ export function startTimer() {
     showStatus('专注中... 保持主线，不要发散', 'info');
     Sounds.phaseStart();
 
-    const interval = setInterval(() => {
-        var remaining = timeRemaining - 1;
-        updateTimeRemaining(remaining);
-        updateTimerDisplay();
-        updateProgress();
-
-        if (currentPhaseKey.startsWith('exec') &&
-            !focusCheckTriggered &&
-            PHASES[currentPhaseKey].minutes >= 10 &&
-            remaining <= (PHASES[currentPhaseKey].minutes - 10) * 60) {
-            updateFocusCheckTriggered(true);
-            Sounds.focusCheck();
-            pauseTimer();
-            showModal('focusModal');
-        }
-
-        if (remaining <= 10 && remaining > 0) Sounds.countdownTick();
-        if (remaining <= 0) {
-            completePhase();
-        }
-    }, 1000);
+    // 用当前剩余秒数锚定一个绝对截止时刻；之后每次 tick 都用真实时间反算，
+    // 即使标签页被切到后台/息屏导致定时器被节流，回到前台后也会立刻校正。
+    phaseDeadline = Date.now() + timeRemaining * 1000;
+    const interval = setInterval(tick, 250);
     updateTimerInterval(interval);
+}
+
+function tick() {
+    if (phaseDeadline === null) return;
+    const prev = timeRemaining;
+    const remaining = Math.max(0, Math.round((phaseDeadline - Date.now()) / 1000));
+    if (remaining === prev && remaining > 0) return; // 同一秒内无需重复刷新
+
+    updateTimeRemaining(remaining);
+    updateTimerDisplay();
+    updateProgress();
+
+    const currentPhaseKey = PHASE_ORDER[currentPhaseIndex];
+
+    if (currentPhaseKey.startsWith('exec') &&
+        !focusCheckTriggered &&
+        PHASES[currentPhaseKey].minutes >= 10 &&
+        remaining <= (PHASES[currentPhaseKey].minutes - 10) * 60 &&
+        remaining > 0) {
+        updateFocusCheckTriggered(true);
+        Sounds.focusCheck();
+        pauseTimer();
+        showModal('focusModal');
+        return;
+    }
+
+    // 仅在真实跨过一秒时播放（跳过后台静默期），且页面可见时才有意义
+    if (remaining <= 10 && remaining > 0 && remaining < prev) Sounds.countdownTick();
+
+    // 跨过整分钟边界时检查时间对齐（后台跳秒也能命中）
+    if (remaining > 0 && Math.floor(prev / 60) !== Math.floor(remaining / 60)) {
+        checkEventTimeAlignment();
+    }
+
+    if (remaining <= 0) {
+        completePhase();
+    }
+}
+
+// 回到前台时立即校正显示（后台节流期间可能积压了若干秒）
+if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && isRunning && phaseDeadline !== null) tick();
+    });
 }
 
 export function pauseTimer() {
@@ -195,6 +256,8 @@ function finishSession() {
     showTimeUpModal('🏁 全部阶段完成', '任务「' + currentSession.taskName + '」已全部完成！');
     saveSession();
     renderHistory();
+    // 通知 main.js 可以执行回写
+    document.dispatchEvent(new CustomEvent('session:finished', { detail: { ...currentSession } }));
 }
 
 export function endSession() {
@@ -213,22 +276,29 @@ export function endSession() {
 
 export function handleStuckOption(option) {
     closeModal('stuckModal');
-    const templates = {
-        smaller: '【拆小】当前任务太大，先完成最小版本：',
-        angle: '【换角度】换个问法重新思考：',
-        action: '【最小行动】不管完美，先做：'
+    // 每个策略追问一句，把"标签"落实成"这一步具体做什么"
+    const prompts = {
+        smaller: { q: '最小版本具体是什么？（10 分钟内能做完的那一小步）', prefix: '【拆小】先只做：' },
+        angle:   { q: '换个问法，新的问题是什么？', prefix: '【换角度】重新定义问题：' },
+        action:  { q: '现在立刻要做的第一个动作是什么？', prefix: '【最小行动】立刻去做：' }
     };
-    // v3.0：写入当前执行轮次的 stuck 字段（如在执行阶段），否则忽略
+    const cfg = prompts[option];
+    const answer = cfg ? (prompt(cfg.q) || '').trim() : '';
+
+    // 写入当前执行轮次的 stuck 字段（如在执行阶段）
     const key = PHASE_ORDER[currentPhaseIndex];
-    if (key && key.startsWith('exec')) {
+    if (answer && key && key.startsWith('exec')) {
         const r = parseInt(key.slice(4));
         const session = { ...currentSession };
         const prev = session.cards.exec.rounds[r].stuck;
-        session.cards.exec.rounds[r].stuck = (prev ? prev + '\n' : '') + templates[option];
+        const line = cfg.prefix + answer;
+        session.cards.exec.rounds[r].stuck = (prev ? prev + '\n' : '') + line;
         updateCurrentSession(session);
         renderAllCards();
+        showStatus('已落实应对：' + line, 'info');
+    } else {
+        showStatus('继续执行，保持主线', 'info');
     }
-    showStatus('已选择应对策略，继续执行', 'info');
     startTimer();
 }
 
@@ -262,13 +332,25 @@ export function clearIdeas() {
     renderIdeas();
 }
 
+let _notifyHintShown = false;
 function sendNotification(title, body) {
-    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
-    new Notification(title, {
-        body: body,
-        tag: 'pomodoro-phase',
-        requireInteraction: true
-    });
+    if (typeof Notification === 'undefined') return;
+    if (Notification.permission === 'granted') {
+        new Notification(title, {
+            body: body,
+            tag: 'pomodoro-phase',
+            requireInteraction: true
+        });
+        return;
+    }
+    // 没有桌面通知权限时，提示一次如何开启（避免只靠声音/页面内弹窗错过提醒）
+    if (!_notifyHintShown) {
+        _notifyHintShown = true;
+        const tip = Notification.permission === 'denied'
+            ? '桌面通知已被浏览器拦截，点击地址栏左侧🔒→允许通知，息屏也能收到提醒。'
+            : '想在息屏/切走时也收到提醒？请在浏览器允许本页面的桌面通知。';
+        showStatus('🔔 ' + tip, 'warning');
+    }
 }
 
 function showTimeUpModal(title, body) {

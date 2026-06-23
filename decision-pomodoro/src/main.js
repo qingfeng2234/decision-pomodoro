@@ -21,7 +21,8 @@ import {
     disconnect as gcalDisconnect, isConnected, getConnectedEmail,
     fetchTodayEvents, renderEvents,
     selectEvent, deselectEvent, getSelectedEvent,
-    getCachedEvents, setCachedEvents
+    getCachedEvents, setCachedEvents,
+    patchEventDescription
 } from './calendar.js';
 
 function init() {
@@ -196,6 +197,27 @@ function setupEventListeners() {
         const s = { ...currentSession };
         s.linkedEvent = e.detail;
         updateCurrentSession(s);
+    });
+
+    // session 完成后询问是否回写到日历
+    document.addEventListener('session:finished', (e) => {
+        const session = e.detail;
+        if (!session.linkedEvent || !session.linkedEvent.id) return;
+        if (!isConnected()) return;
+        const title = session.linkedEvent.title || '该日程';
+        if (!confirm(`番茄钟已完成！\n\n是否把本轮产出回写到「${title}」的描述里？`)) return;
+        const lines = ['🍅 番茄钟产出（' + new Date(session.startTime).toLocaleTimeString('zh-CN') + '）'];
+        lines.push('任务：' + (session.taskName || '未命名'));
+        session.phases.forEach(p => {
+            lines.push('\n【' + p.phaseName + '】');
+            lines.push(p.output || '（无）');
+        });
+        if (session.ideas && session.ideas.length > 0) {
+            lines.push('\n💭 延后想法：' + session.ideas.map(i => i.text).join('；'));
+        }
+        patchEventDescription(session.linkedEvent.id, lines.join('\n'))
+            .then(() => showStatus('✅ 产出已回写到「' + title + '」', 'success'))
+            .catch(err => showStatus('回写失败：' + err.message, 'danger'));
     });
 
     // GCal 事件列表：点击选中/取消

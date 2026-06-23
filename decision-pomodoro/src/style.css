@@ -1055,6 +1055,19 @@ h1 {
     padding: 6px 8px;
     background: #f8f9fa;
     border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.15s;
+}
+
+.gcal-event:hover {
+    border-color: #667eea;
+    background: #f0f4ff;
+}
+
+.gcal-event.selected {
+    border-color: #4a7be0;
+    background: #e8f0ff;
 }
 
 .gcal-event.all-day {

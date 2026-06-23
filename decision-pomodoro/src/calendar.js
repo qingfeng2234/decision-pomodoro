@@ -18,7 +18,7 @@ import { GCAL_CONFIG_KEY } from './config.js';
 
 const GIS_SCRIPT_SRC = 'https://accounts.google.com/gsi/client';
 const SCOPES = [
-    'https://www.googleapis.com/auth/calendar.readonly',
+    'https://www.googleapis.com/auth/calendar',       // 需要写权限才能回写产出
     'https://www.googleapis.com/auth/userinfo.email'
 ].join(' ');
 const USERINFO_URL = 'https://www.googleapis.com/oauth2/v3/userinfo';
@@ -310,4 +310,40 @@ export function saveClientId(clientId) {
     const cfg = loadGCalConfig();
     cfg.clientId = (clientId || '').trim();
     saveGCalConfig(cfg);
+}
+
+// ---------- 回写产出到日历事件描述 ----------
+
+export async function patchEventDescription(eventId, appendText) {
+    const cfg = loadGCalConfig();
+    if (!cfg.accessToken) throw new Error('未连接 Google Calendar');
+
+    // 先 GET 取当前 description
+    const getUrl = `https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(eventId)}?fields=description`;
+    const getResp = await fetch(getUrl, {
+        headers: { Authorization: 'Bearer ' + cfg.accessToken }
+    });
+    if (getResp.status === 401) {
+        clearGCalToken();
+        emit('disconnected', {});
+        throw new Error('登录已过期，请重新连接');
+    }
+    if (!getResp.ok) throw new Error('获取事件失败：' + getResp.status);
+    const eventData = await getResp.json();
+
+    const sep = '\n\n---\n';
+    const newDesc = (eventData.description || '') + sep + appendText;
+
+    // PATCH 只更新 description
+    const patchUrl = `https://www.googleapis.com/calendar/v3/calendars/primary/events/${encodeURIComponent(eventId)}`;
+    const patchResp = await fetch(patchUrl, {
+        method: 'PATCH',
+        headers: {
+            Authorization: 'Bearer ' + cfg.accessToken,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ description: newDesc })
+    });
+    if (!patchResp.ok) throw new Error('回写失败：' + patchResp.status);
+    return await patchResp.json();
 }
