@@ -76,14 +76,14 @@ body {
 
 h1 {
     text-align: center;
-    color: #1e3a5f;
+    color: var(--c-ink);
     margin-bottom: 8px;
     font-size: 24px;
 }
 
 .subtitle {
     text-align: center;
-    color: #5c7a9a;
+    color: var(--c-muted);
     font-size: 14px;
     margin-bottom: 24px;
 }
@@ -93,7 +93,7 @@ h1 {
     justify-content: space-between;
     margin-bottom: 24px;
     padding: 12px;
-    background: #f8f9fa;
+    background: var(--c-surface);
     border-radius: 12px;
 }
 
@@ -103,7 +103,7 @@ h1 {
     padding: 8px 4px;
     border-radius: 8px;
     font-size: 12px;
-    color: #94a8be;
+    color: var(--c-faint);
     transition: all 0.3s;
 }
 
@@ -133,7 +133,7 @@ h1 {
 .timer-display {
     font-size: 80px;
     font-weight: 700;
-    color: #1e3a5f;
+    color: var(--c-ink);
     font-variant-numeric: tabular-nums;
     letter-spacing: -2px;
 }
@@ -151,7 +151,7 @@ h1 {
 .progress-bar {
     width: 100%;
     height: 8px;
-    background: #e9ecef;
+    background: var(--c-surface-2);
     border-radius: 4px;
     margin-top: 16px;
     overflow: hidden;
@@ -165,7 +165,7 @@ h1 {
 }
 
 .output-section {
-    background: #f8f9fa;
+    background: var(--c-surface);
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 20px;
@@ -174,7 +174,7 @@ h1 {
 .output-label {
     font-size: 14px;
     font-weight: 600;
-    color: #1e3a5f;
+    color: var(--c-ink);
     margin-bottom: 10px;
     display: flex;
     align-items: center;
@@ -216,7 +216,7 @@ h1 {
 .settings-input {
     width: 100%;
     padding: 10px 12px;
-    border: 2px solid #c8d6e5;
+    border: 2px solid var(--c-border);
     border-radius: 8px;
     font-size: 14px;
     margin-bottom: 12px;
@@ -227,7 +227,7 @@ h1 {
     width: 100%;
     min-height: 80px;
     padding: 12px;
-    border: 2px solid #c8d6e5;
+    border: 2px solid var(--c-border);
     border-radius: 8px;
     font-size: 14px;
     resize: vertical;
@@ -241,7 +241,7 @@ h1 {
 
 .output-hint {
     font-size: 12px;
-    color: #5c7a9a;
+    color: var(--c-muted);
     margin-top: 8px;
 }
 
@@ -331,7 +331,7 @@ h1 {
 
 .btn-warning {
     background: #ffc107;
-    color: #1e3a5f;
+    color: var(--c-ink);
 }
 
 .btn-warning:hover:not(:disabled) {
@@ -386,12 +386,12 @@ h1 {
     font-size: 18px;
     font-weight: 700;
     margin-bottom: 16px;
-    color: #1e3a5f;
+    color: var(--c-ink);
 }
 
 .modal-text {
     font-size: 14px;
-    color: #5c7a9a;
+    color: var(--c-muted);
     margin-bottom: 20px;
     line-height: 1.6;
 }
@@ -404,7 +404,7 @@ h1 {
 
 .modal-btn {
     padding: 12px 20px;
-    border: 2px solid #c8d6e5;
+    border: 2px solid var(--c-border);
     border-radius: 10px;
     background: white;
     font-size: 14px;
@@ -451,7 +451,7 @@ h1 {
     width: 100%;
     min-height: 300px;
     padding: 12px;
-    border: 2px solid #c8d6e5;
+    border: 2px solid var(--c-border);
     border-radius: 8px;
     font-size: 13px;
     font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, monospace;
@@ -461,7 +461,7 @@ h1 {
 
 .copy-hint {
     font-size: 12px;
-    color: #5c7a9a;
+    color: var(--c-muted);
     margin-top: 8px;
     text-align: center;
 }
@@ -469,18 +469,18 @@ h1 {
 .history-section {
     margin-top: 24px;
     padding-top: 24px;
-    border-top: 1px solid #c8d6e5;
+    border-top: 1px solid var(--c-border);
 }
 
 .history-title {
     font-size: 14px;
     font-weight: 600;
-    color: #1e3a5f;
+    color: var(--c-ink);
     margin-bottom: 12px;
 }
 
 .history-item {
-    background: #f8f9fa;
+    background: var(--c-surface);
     border-radius: 8px;
     padding: 12px;
     margin-bottom: 8px;
@@ -488,7 +488,7 @@ h1 {
 }
 
 .history-time {
-    color: #5c7a9a;
+    color: var(--c-muted);
     font-size: 11px;
 }
 
@@ -498,7 +498,7 @@ h1 {
 
 .icon-btn {
     background: none;
-    border: 2px solid #c8d6e5;
+    border: 2px solid var(--c-border);
     border-radius: 8px;
     width: 36px;
     height: 36px;
@@ -556,7 +556,7 @@ h1 {
     align-items: center;
     gap: 8px;
     padding: 8px;
-    background: #f8f9fa;
+    background: var(--c-surface);
     border-radius: 6px;
     margin-bottom: 6px;
     cursor: pointer;
@@ -564,7 +564,7 @@ h1 {
 }
 
 .export-session-item:hover {
-    background: #e9ecef;
+    background: var(--c-surface-2);
 }
 
 .settings-group {
@@ -573,18 +573,18 @@ h1 {
 
 .settings-group label {
     font-size: 13px;
-    color: #5c7a9a;
+    color: var(--c-muted);
     display: block;
     margin-bottom: 4px;
 }
 
 .settings-preview {
-    background: #f8f9fa;
+    background: var(--c-surface);
     border-radius: 8px;
     padding: 12px;
     margin-bottom: 16px;
     font-size: 13px;
-    color: #5c7a9a;
+    color: var(--c-muted);
 }
 
 .sound-test-area {
@@ -623,7 +623,7 @@ h1 {
     background: #e0b44c;
     border-radius: 50%;
     cursor: pointer;
-    border: 2px solid #1e3a5f;
+    border: 2px solid var(--c-ink);
 }
 
 .volume-wrap input[type="range"]::-moz-range-thumb {
@@ -632,7 +632,7 @@ h1 {
     background: #e0b44c;
     border-radius: 50%;
     cursor: pointer;
-    border: 2px solid #1e3a5f;
+    border: 2px solid var(--c-ink);
 }
 
 /* ============ v3.0 三胶囊卡 ============ */
@@ -649,7 +649,7 @@ h1 {
 }
 
 .capsule-card {
-    background: #f8f9fa;
+    background: var(--c-surface);
     border: 2px solid transparent;
     border-radius: 14px;
     padding: 16px;
@@ -681,7 +681,7 @@ h1 {
     gap: 8px;
     margin-bottom: 12px;
     padding-bottom: 10px;
-    border-bottom: 1px dashed #d4dbe6;
+    border-bottom: 1px dashed var(--c-border-dashed);
 }
 
 .capsule-icon { font-size: 20px; }
@@ -689,7 +689,7 @@ h1 {
 .capsule-title {
     font-size: 15px;
     font-weight: 700;
-    color: #1e3a5f;
+    color: var(--c-ink);
     flex: 1;
 }
 
@@ -697,8 +697,8 @@ h1 {
     font-size: 11px;
     padding: 3px 9px;
     border-radius: 10px;
-    background: #e9ecef;
-    color: #5c7a9a;
+    background: var(--c-surface-2);
+    color: var(--c-muted);
     font-weight: 600;
 }
 
@@ -722,14 +722,14 @@ h1 {
 .capsule-label {
     font-size: 12px;
     font-weight: 600;
-    color: #5c7a9a;
+    color: var(--c-muted);
     margin-top: 4px;
 }
 
 .capsule-input {
     width: 100%;
     padding: 9px 11px;
-    border: 1.5px solid #c8d6e5;
+    border: 1.5px solid var(--c-border);
     border-radius: 7px;
     font-size: 13px;
     font-family: inherit;
@@ -762,7 +762,7 @@ h1 {
     background: white;
     padding: 7px 9px;
     border-radius: 7px;
-    border: 1px solid #e0e6ef;
+    border: 1px solid var(--c-border-soft);
 }
 
 .task-item .task-fields {
@@ -776,14 +776,14 @@ h1 {
 .task-item .task-criterion {
     width: 100%;
     padding: 5px 8px;
-    border: 1px solid #e0e6ef;
+    border: 1px solid var(--c-border-soft);
     border-radius: 5px;
     font-size: 12px;
     font-family: inherit;
 }
 
 .task-item .task-criterion {
-    color: #5c7a9a;
+    color: var(--c-muted);
     background: #fafbfc;
 }
 
@@ -799,7 +799,7 @@ h1 {
 
 .task-add-btn {
     background: transparent;
-    border: 1.5px dashed #c8d6e5;
+    border: 1.5px dashed var(--c-border);
     border-radius: 7px;
     padding: 7px;
     cursor: pointer;
@@ -816,7 +816,7 @@ h1 {
     flex-direction: column;
     gap: 4px;
     background: white;
-    border: 1px solid #e0e6ef;
+    border: 1px solid var(--c-border-soft);
     border-radius: 7px;
     padding: 8px;
     min-height: 38px;
@@ -832,25 +832,25 @@ h1 {
 .task-check-item input[type="checkbox"] { margin-top: 3px; }
 
 .task-check-item .task-check-criterion {
-    color: #94a8be;
+    color: var(--c-faint);
     font-size: 11px;
     margin-left: 4px;
 }
 
-.task-check-item.done .task-check-text { text-decoration: line-through; color: #94a8be; }
+.task-check-item.done .task-check-text { text-decoration: line-through; color: var(--c-faint); }
 
 .task-check-list.readonly input[type="checkbox"] { pointer-events: none; }
 
 .task-check-list .task-check-empty {
     font-size: 11px;
-    color: #94a8be;
+    color: var(--c-faint);
     text-align: center;
     padding: 4px;
 }
 
 /* 执行/复盘卡内的轮次小节 */
 .exec-round, .review-round {
-    border: 1px solid #e0e6ef;
+    border: 1px solid var(--c-border-soft);
     border-radius: 8px;
     background: white;
     overflow: hidden;
@@ -871,11 +871,11 @@ h1 {
 }
 
 .round-head {
-    background: #eef1f6;
+    background: var(--c-surface-3);
     padding: 6px 10px;
     font-size: 12px;
     font-weight: 600;
-    color: #1e3a5f;
+    color: var(--c-ink);
 }
 
 .exec-round.active > .round-head,
@@ -890,7 +890,7 @@ h1 {
 
 .round-stuck summary {
     font-size: 11px;
-    color: #5c7a9a;
+    color: var(--c-muted);
     cursor: pointer;
     user-select: none;
 }
@@ -942,7 +942,7 @@ h1 {
 .round-toggle-btn {
     width: 100%;
     background: transparent;
-    border: 1.5px dashed #c8d6e5;
+    border: 1.5px dashed var(--c-border);
     border-radius: 7px;
     padding: 6px 8px;
     margin-top: 8px;
@@ -968,10 +968,10 @@ h1 {
 }
 
 .round-toggle-btn:disabled {
-    color: #94a8be;
-    border-color: #d4dbe6;
+    color: var(--c-faint);
+    border-color: var(--c-border-dashed);
     cursor: not-allowed;
-    background: #f8f9fa;
+    background: var(--c-surface);
 }
 
 /* 想法拦截器清空按钮 */
@@ -998,7 +998,7 @@ h1 {
     list-style: none;
     cursor: pointer;
     font-size: 11px;
-    color: #5c7a9a;
+    color: var(--c-muted);
     padding: 4px 8px;
     background: #f0f4ff;
     border-radius: 6px;
@@ -1030,7 +1030,7 @@ h1 {
     gap: 8px;
     flex-wrap: wrap;
     padding: 8px 12px;
-    background: #f8f9fa;
+    background: var(--c-surface);
     border-radius: 10px;
     border: 1px solid #e1e8f0;
     font-size: 13px;
@@ -1042,11 +1042,11 @@ h1 {
 
 .gcal-bar-label {
     font-weight: 600;
-    color: #1e3a5f;
+    color: var(--c-ink);
 }
 
 .gcal-status {
-    color: #5c7a9a;
+    color: var(--c-muted);
     font-size: 12px;
 }
 
@@ -1059,7 +1059,7 @@ h1 {
     flex: 1 1 240px;
     min-width: 200px;
     padding: 6px 10px;
-    border: 1px solid #c8d6e5;
+    border: 1px solid var(--c-border);
     border-radius: 6px;
     font-size: 12px;
 }
@@ -1080,7 +1080,7 @@ h1 {
 .gcal-panel-title {
     font-size: 13px;
     font-weight: 600;
-    color: #1e3a5f;
+    color: var(--c-ink);
     margin-bottom: 8px;
 }
 
@@ -1091,7 +1091,7 @@ h1 {
 }
 
 .gcal-empty {
-    color: #94a8be;
+    color: var(--c-faint);
     font-size: 13px;
     text-align: center;
     padding: 8px 0;
@@ -1102,9 +1102,9 @@ h1 {
     align-items: baseline;
     gap: 8px;
     font-size: 13px;
-    color: #1e3a5f;
+    color: var(--c-ink);
     padding: 6px 8px;
-    background: #f8f9fa;
+    background: var(--c-surface);
     border-radius: 6px;
     cursor: pointer;
     border: 2px solid transparent;
@@ -1126,7 +1126,7 @@ h1 {
 }
 
 .gcal-event-time {
-    color: #5c7a9a;
+    color: var(--c-muted);
     font-variant-numeric: tabular-nums;
     flex-shrink: 0;
     min-width: 92px;
@@ -1137,7 +1137,7 @@ h1 {
 }
 
 .gcal-event-loc {
-    color: #94a8be;
+    color: var(--c-faint);
     font-size: 12px;
 }
 
