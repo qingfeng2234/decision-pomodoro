@@ -57,7 +57,7 @@
 
 body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, var(--c-brand) 0%, var(--c-brand-deep) 100%);
     min-height: 100vh;
     display: flex;
     justify-content: center;
@@ -108,7 +108,7 @@ h1 {
 }
 
 .phase-step.active {
-    background: #667eea;
+    background: var(--c-brand);
     color: white;
     font-weight: 600;
 }
@@ -125,7 +125,7 @@ h1 {
 
 .phase-name {
     font-size: 18px;
-    color: #667eea;
+    color: var(--c-brand);
     font-weight: 600;
     margin-bottom: 12px;
 }
@@ -159,7 +159,7 @@ h1 {
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #667eea, #764ba2);
+    background: linear-gradient(90deg, var(--c-brand), var(--c-brand-deep));
     border-radius: 4px;
     transition: width 1s linear;
 }
@@ -190,23 +190,23 @@ h1 {
 
 .output-type-btn {
     padding: 6px 14px;
-    border: 2px solid #bcd4f0;
+    border: 2px solid var(--c-accent-border);
     border-radius: 20px;
     background: white;
     font-size: 13px;
     cursor: pointer;
     transition: all 0.2s;
-    color: #4a6fa5;
+    color: var(--c-accent-ink);
 }
 
 .output-type-btn:hover {
-    border-color: #4a8fe7;
-    color: #4a8fe7;
-    background: #eaf2fd;
+    border-color: var(--c-accent);
+    color: var(--c-accent);
+    background: var(--c-accent-tint);
 }
 
 .output-type-btn.active {
-    background: linear-gradient(135deg, #4a8fe7, #3a6fd8);
+    background: linear-gradient(135deg, var(--c-accent), var(--c-accent-strong));
     border-color: transparent;
     color: white;
     font-weight: 600;
@@ -236,7 +236,7 @@ h1 {
 
 .output-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--c-brand);
 }
 
 .output-hint {
@@ -311,12 +311,12 @@ h1 {
 }
 
 .btn-primary {
-    background: #667eea;
+    background: var(--c-brand);
     color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-    background: #5a6fd6;
+    background: var(--c-brand-strong);
     transform: translateY(-1px);
 }
 
@@ -348,12 +348,12 @@ h1 {
 }
 
 .btn-secondary {
-    background: #5a7fa0;
+    background: var(--c-secondary);
     color: white;
 }
 
 .btn-secondary:hover:not(:disabled) {
-    background: #4c6e8c;
+    background: var(--c-secondary-strong);
 }
 
 .modal-overlay {
@@ -414,7 +414,7 @@ h1 {
 }
 
 .modal-btn:hover {
-    border-color: #667eea;
+    border-color: var(--c-brand);
     background: #f8f9ff;
 }
 
@@ -512,7 +512,7 @@ h1 {
 }
 
 .icon-btn:hover {
-    border-color: #667eea;
+    border-color: var(--c-brand);
     background: #f8f9ff;
 }
 
@@ -529,8 +529,8 @@ h1 {
 }
 
 .ai-suggestion-box {
-    background: #f0f4ff;
-    border: 1px solid #c5d0f5;
+    background: var(--c-brand-tint);
+    border: 1px solid var(--c-brand-tint-border);
     border-radius: 8px;
     padding: 12px;
     margin-top: 8px;
@@ -660,7 +660,7 @@ h1 {
 }
 
 .capsule-card.active {
-    border-color: #667eea;
+    border-color: var(--c-brand);
     background: white;
     box-shadow: 0 6px 24px rgba(102, 126, 234, 0.18);
 }
@@ -703,7 +703,7 @@ h1 {
 }
 
 .capsule-card.active .capsule-status {
-    background: #667eea;
+    background: var(--c-brand);
     color: white;
 }
 
@@ -749,7 +749,7 @@ h1 {
 
 .capsule-input:focus {
     outline: none;
-    border-color: #667eea;
+    border-color: var(--c-brand);
 }
 
 /* 任务条目 */
@@ -803,12 +803,12 @@ h1 {
     border-radius: 7px;
     padding: 7px;
     cursor: pointer;
-    color: #667eea;
+    color: var(--c-brand);
     font-size: 12px;
     margin-top: 4px;
 }
 
-.task-add-btn:hover { background: #f0f4ff; }
+.task-add-btn:hover { background: var(--c-brand-tint); }
 
 /* 勾选列表（执行卡 + 复盘卡只读引用） */
 .task-check-list {
@@ -880,7 +880,7 @@ h1 {
 
 .exec-round.active > .round-head,
 .review-round.active > .round-head {
-    background: #667eea;
+    background: var(--c-brand);
     color: white;
 }
 
@@ -913,16 +913,16 @@ h1 {
 .capsule-ai-btn {
     margin-top: 10px;
     padding: 8px;
-    border: 1.5px solid #c5d0f5;
+    border: 1.5px solid var(--c-brand-tint-border);
     border-radius: 7px;
-    background: #f0f4ff;
-    color: #4a6fa5;
+    background: var(--c-brand-tint);
+    color: var(--c-accent-ink);
     font-size: 12px;
     cursor: pointer;
     transition: all 0.2s;
 }
 
-.capsule-ai-btn:hover { background: #e0eaff; border-color: #667eea; }
+.capsule-ai-btn:hover { background: var(--c-brand-tint-strong); border-color: var(--c-brand); }
 
 .capsule-ai-btn:disabled { opacity: 0.5; cursor: wait; }
 
@@ -947,14 +947,14 @@ h1 {
     padding: 6px 8px;
     margin-top: 8px;
     cursor: pointer;
-    color: #667eea;
+    color: var(--c-brand);
     font-size: 12px;
     transition: all 0.15s;
 }
 
 .round-toggle-btn:hover:not(:disabled) {
-    background: #f0f4ff;
-    border-color: #667eea;
+    background: var(--c-brand-tint);
+    border-color: var(--c-brand);
 }
 
 .round-toggle-btn.remove-mode {
@@ -1000,7 +1000,7 @@ h1 {
     font-size: 11px;
     color: var(--c-muted);
     padding: 4px 8px;
-    background: #f0f4ff;
+    background: var(--c-brand-tint);
     border-radius: 6px;
     user-select: none;
     transition: background 0.15s;
@@ -1008,14 +1008,14 @@ h1 {
 
 .output-type-details > summary::-webkit-details-marker { display: none; }
 
-.output-type-details > summary:hover { background: #e0eaff; }
+.output-type-details > summary:hover { background: var(--c-brand-tint-strong); }
 
 .output-type-details[open] > summary {
     margin-bottom: 6px;
 }
 
 .output-type-details [data-output-type-label] {
-    color: #667eea;
+    color: var(--c-brand);
     font-weight: 600;
 }
 
@@ -1112,8 +1112,8 @@ h1 {
 }
 
 .gcal-event:hover {
-    border-color: #667eea;
-    background: #f0f4ff;
+    border-color: var(--c-brand);
+    background: var(--c-brand-tint);
 }
 
 .gcal-event.selected {
